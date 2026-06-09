@@ -45,8 +45,8 @@ android {
         applicationId = "moe.DDOne.volume"
         minSdk = 33
         targetSdk = 35
-        versionCode = 19
-        versionName = "0.3"
+        versionCode = 20
+        versionName = "0.3-beta.16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -12,7 +12,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -26,7 +25,6 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,10 +33,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -56,7 +53,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import moe.chensi.volume.bubble.BUBBLE_SHADOW_PADDING_DP
 import moe.chensi.volume.bubble.calculateBubbleLayout
 import moe.chensi.volume.compose.AppVolumeList
-import moe.chensi.volume.compose.StreamVolumeSlider
+import moe.chensi.volume.compose.SystemVolumePanel
 import moe.chensi.volume.data.BubbleAnimationStyle
 import moe.chensi.volume.system.ActivityTaskManagerProxy
 import moe.chensi.volume.ui.theme.VolumeManagerTheme
@@ -185,33 +182,28 @@ class Service : AccessibilityService() {
             @Composable
             override fun Content() {
                 VolumeManagerTheme {
-                    Surface(color = Color.Transparent, contentColor = Color.White) {
+                    Surface(
+                        color = Color(1f, 1f, 1f, 0.3f),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        shape = RoundedCornerShape(40f)
+                    ) {
                         Column(
-                            modifier = Modifier
-                                .background(Color(1f, 1f, 1f, 0.3f), RoundedCornerShape(40f))
-                                .padding(20.dp, 16.dp)
+                            modifier = Modifier.padding(20.dp, 16.dp)
                         ) {
                             AppVolumeList(
                                 apps = manager.apps.values,
                                 showAll = false,
                                 onChange = ::startOverlayIdleTimer
                             ) {
-                                item(AudioManager.STREAM_MUSIC) {
-                                    StreamVolumeSlider(
-                                        AudioManager.STREAM_MUSIC,
-                                        Icons.Default.MusicNote,
-                                        "Music",
-                                        manager.audioManager,
-                                        onChange = ::startOverlayIdleTimer
-                                    )
-                                }
-
-                                item(AudioManager.STREAM_NOTIFICATION) {
-                                    StreamVolumeSlider(
-                                        AudioManager.STREAM_NOTIFICATION,
-                                        Icons.Default.Notifications,
-                                        "Notifications",
-                                        manager.audioManager,
+                                item("system_volume_panel") {
+                                    SystemVolumePanel(
+                                        audioManager = manager.audioManager,
+                                        notificationManagerProxy = manager.notificationManagerProxy,
+                                        showCallVolumeAlways = false,
+                                        applyVisibilityFilter = true,
+                                        allowVisibilityConfig = false,
+                                        isSliderVisible = manager::isSystemSliderVisible,
+                                        onSliderVisibilityChange = manager::setSystemSliderVisible,
                                         onChange = ::startOverlayIdleTimer
                                     )
                                 }

@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -73,9 +74,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
+import moe.chensi.volume.compose.AboutDialog
 import moe.chensi.volume.compose.AppVolumeList
 import moe.chensi.volume.compose.BubbleSettingsCard
 import moe.chensi.volume.compose.CrashReportDialog
+import moe.chensi.volume.compose.SystemVolumePanel
 import moe.chensi.volume.compose.ToggleButton
 import moe.chensi.volume.ui.theme.VolumeManagerTheme
 import org.joor.Reflect
@@ -198,6 +201,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             var showAll by remember { mutableStateOf(false) }
             var crashReport by remember { mutableStateOf<String?>(null) }
+            var showAboutDialog by remember { mutableStateOf(false) }
             var currentPage by rememberSaveable { mutableStateOf(Page.Main) }
             var predictiveBackProgress by remember { mutableFloatStateOf(0f) }
 
@@ -265,6 +269,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            if (showAboutDialog) {
+                Dialog(
+                    onDismissRequest = { showAboutDialog = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    VolumeManagerTheme {
+                        AboutDialog(onDismiss = { showAboutDialog = false })
+                    }
+                }
+            }
+
             VolumeManagerTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(), topBar = {
@@ -313,6 +328,21 @@ class MainActivity : ComponentActivity() {
                                         uncheckedDescription = "Show all apps"
                                     ) {
                                         showAll = it
+                                    }
+                                }
+
+                                TooltipBox(
+                                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                        TooltipAnchorPosition.Below, 12.dp
+                                    ),
+                                    tooltip = { PlainTooltip { Text(stringResource(R.string.about)) } },
+                                    state = rememberTooltipState()
+                                ) {
+                                    IconButton(onClick = { showAboutDialog = true }) {
+                                        Icon(
+                                            Icons.Default.Info,
+                                            contentDescription = stringResource(R.string.about)
+                                        )
                                     }
                                 }
 
@@ -475,7 +505,20 @@ class MainActivity : ComponentActivity() {
                                             apps = manager.apps.values,
                                             showEmpty = true,
                                             showAll = showAll,
-                                            onShowAll = { showAll = true }
+                                            onShowAll = { showAll = true },
+                                            content = {
+                                                item("system_volume_panel_main") {
+                                                    SystemVolumePanel(
+                                                        audioManager = manager.audioManager,
+                                                        notificationManagerProxy = manager.notificationManagerProxy,
+                                                        showCallVolumeAlways = true,
+                                                        applyVisibilityFilter = !showAll,
+                                                        allowVisibilityConfig = showAll,
+                                                        isSliderVisible = manager::isSystemSliderVisible,
+                                                        onSliderVisibilityChange = manager::setSystemSliderVisible,
+                                                    )
+                                                }
+                                            }
                                         )
                                     }
                                 }

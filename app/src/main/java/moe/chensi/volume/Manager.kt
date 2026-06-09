@@ -17,6 +17,7 @@ import moe.chensi.volume.data.BubbleAnimationStyle
 import moe.chensi.volume.data.BubblePreferences
 import moe.chensi.volume.data.AppPreferencesStore
 import moe.chensi.volume.system.AudioPlaybackConfigurationProxy
+import moe.chensi.volume.system.NotificationManagerProxy
 import moe.chensi.volume.system.PackageManagerProxy
 import org.joor.Reflect
 import rikka.shizuku.Shizuku
@@ -46,11 +47,29 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
             .apply { ToggleableBinderProxy.wrap(this) }
     }
     private val packageManager by lazy { PackageManagerProxy.get(context) }
+    val notificationManagerProxy = NotificationManagerProxy(context)
 
     private val appPreferencesStore = AppPreferencesStore(dataStore)
     private var _bubblePreferences by mutableStateOf(appPreferencesStore.bubble)
     val bubblePreferences: BubblePreferences
         get() = _bubblePreferences
+
+    private val _systemSliderVisibility = mutableStateMapOf<String, Boolean>()
+    val systemSliderVisibility: Map<String, Boolean>
+        get() = _systemSliderVisibility
+
+    fun isSystemSliderVisible(id: String): Boolean {
+        return _systemSliderVisibility[id] ?: true
+    }
+
+    fun setSystemSliderVisible(id: String, visible: Boolean) {
+        if ((_systemSliderVisibility[id] ?: true) == visible) {
+            return
+        }
+
+        _systemSliderVisibility[id] = visible
+        appPreferencesStore.setSystemSliderVisible(id, visible)
+    }
 
     val apps = mutableStateMapOf<String, App>()
 
@@ -168,6 +187,9 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
                     getApp(packageName)?.setPreferences(appPreferencesStore.values[index])
                 }
             }
+
+            _systemSliderVisibility.clear()
+            _systemSliderVisibility.putAll(appPreferencesStore.systemSliderVisibility)
 
             if (first) {
                 initialize()
