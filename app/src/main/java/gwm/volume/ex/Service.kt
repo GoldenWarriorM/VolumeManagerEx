@@ -342,13 +342,15 @@ class Service : AccessibilityService() {
         mainHandler.removeCallbacks(hideOverlayRunnable)
 
         val target = overlayView ?: return
+
+        target.background = null
+
         animateOverlayOut(target) {
             if (overlayVisible) {
                 return@animateOverlayOut
             }
 
             try {
-                target.background = null
                 overlayLifecycle?.currentState = Lifecycle.State.DESTROYED
                 windowManager.removeView(target)
             } catch (_: Exception) {
