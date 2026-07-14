@@ -116,7 +116,7 @@ class Service : AccessibilityService() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -219,6 +219,15 @@ class Service : AccessibilityService() {
         return object : AbstractComposeView(this) {
             init {
                 installViewOwners(this) { lifecycle -> bubbleLifecycle = lifecycle }
+            }
+
+            @SuppressLint("ClickableViewAccessibility")
+            override fun onTouchEvent(event: MotionEvent): Boolean {
+                if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
+                    hideBubble()
+                    return true
+                }
+                return super.onTouchEvent(event)
             }
 
             @Composable
