@@ -89,7 +89,10 @@ class Service : AccessibilityService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val hideOverlayRunnable = Runnable { hideOverlay() }
     private val hideBubbleRunnable = Runnable { hideBubble() }
-    private val delayedHideBubbleRunnable = Runnable { hideBubble() }
+    private val delayedHideBubbleRunnable = Runnable {
+        Log.d(TAG, "delayedHideBubbleRunnable executing")
+        hideBubble()
+    }
 
     private var overlayView: View? = null
     private var overlayVisible = false
@@ -229,6 +232,8 @@ class Service : AccessibilityService() {
                     val touchX = event.rawX
                     val touchY = event.rawY
 
+                    Log.d(TAG, "ACTION_OUTSIDE at ($touchX, $touchY)")
+
                     mainHandler.removeCallbacks(delayedHideBubbleRunnable)
 
                     val onOtherWindow = windows.any { w ->
@@ -237,11 +242,14 @@ class Service : AccessibilityService() {
                         }
                         val bounds = android.graphics.Rect()
                         w.getBoundsInScreen(bounds)
+                        Log.d(TAG, "  window bounds=${bounds} type=${w.getType()}")
                         bounds.contains(touchX.toInt(), touchY.toInt())
                     }
 
+                    Log.d(TAG, "  onOtherWindow=$onOtherWindow (${windows.size} windows)")
+
                     if (!onOtherWindow) {
-                        mainHandler.postDelayed(delayedHideBubbleRunnable, 200L)
+                        mainHandler.postDelayed(delayedHideBubbleRunnable, 1000L)
                     }
                     return true
                 }
@@ -695,6 +703,7 @@ class Service : AccessibilityService() {
                     }
                 }
                 VOLUME_CHANGED_ACTION -> {
+                    Log.d(TAG, "VOLUME_CHANGED_ACTION bubbleVisible=$bubbleVisible")
                     mainHandler.removeCallbacks(delayedHideBubbleRunnable)
                     if (bubbleVisible) startBubbleIdleTimer()
                 }
