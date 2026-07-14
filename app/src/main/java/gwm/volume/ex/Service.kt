@@ -234,7 +234,7 @@ class Service : AccessibilityService() {
                         val bounds = android.graphics.Rect()
                         w.getBoundsInScreen(bounds)
                         bounds.contains(touchPoint.x, touchPoint.y) &&
-                            w.getRoot()?.packageName?.contains("systemui", ignoreCase = true) == true
+                            w.getRoot()?.getPackageName()?.contains("systemui", ignoreCase = true) == true
                     }
 
                     if (!onVolumePanel) {
