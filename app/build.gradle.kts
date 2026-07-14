@@ -17,7 +17,7 @@ androidAopConfig {
     debug = false
 
     // include does not set all scans by default. After setting, only the code of the set package name will be scanned.
-//    include("moe.chensi.volume")
+//    include("gwm.volume.ex")
 
     // exclude is the package excluded during scanning
     // Can exclude kotlin related and improve speed
@@ -37,12 +37,12 @@ androidAopConfig {
 }
 
 android {
-    namespace = "moe.chensi.volume"
+    namespace = "gwm.volume.ex"
     compileSdk = 36
     ndkVersion = "29.0.14033849"
 
     defaultConfig {
-        applicationId = "moe.DDOne.volume"
+        applicationId = "gwm.volume.ex"
         minSdk = 33
         targetSdk = 35
         versionCode = 20
