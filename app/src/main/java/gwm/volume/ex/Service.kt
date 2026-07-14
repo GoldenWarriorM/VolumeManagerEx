@@ -89,6 +89,7 @@ class Service : AccessibilityService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val hideOverlayRunnable = Runnable { hideOverlay() }
     private val hideBubbleRunnable = Runnable { hideBubble() }
+    private val delayedHideBubbleRunnable = Runnable { hideBubble() }
 
     private var overlayView: View? = null
     private var overlayVisible = false
@@ -228,7 +229,7 @@ class Service : AccessibilityService() {
                     val touchX = event.rawX
                     val touchY = event.rawY
 
-                    val touchPoint = android.graphics.Point(touchX.toInt(), touchY.toInt())
+                    mainHandler.removeCallbacks(delayedHideBubbleRunnable)
 
                     val onOtherWindow = windows.any { w ->
                         if (w.getType() == android.view.accessibility.AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY) {
@@ -236,11 +237,11 @@ class Service : AccessibilityService() {
                         }
                         val bounds = android.graphics.Rect()
                         w.getBoundsInScreen(bounds)
-                        bounds.contains(touchPoint.x, touchPoint.y)
+                        bounds.contains(touchX.toInt(), touchY.toInt())
                     }
 
-                    if (!onVolumePanel) {
-                        hideBubble()
+                    if (!onOtherWindow) {
+                        mainHandler.postDelayed(delayedHideBubbleRunnable, 200L)
                     }
                     return true
                 }
@@ -449,6 +450,8 @@ class Service : AccessibilityService() {
     }
 
     private fun showBubble() {
+        mainHandler.removeCallbacks(delayedHideBubbleRunnable)
+
         if (overlayVisible) {
             startOverlayIdleTimer()
             return
@@ -586,6 +589,8 @@ class Service : AccessibilityService() {
     }
 
     private fun hideBubble() {
+        mainHandler.removeCallbacks(delayedHideBubbleRunnable)
+
         if (!bubbleVisible) {
             return
         }
@@ -689,7 +694,10 @@ class Service : AccessibilityService() {
                         hideBubble()
                     }
                 }
-                VOLUME_CHANGED_ACTION -> if (bubbleVisible) startBubbleIdleTimer()
+                VOLUME_CHANGED_ACTION -> {
+                    mainHandler.removeCallbacks(delayedHideBubbleRunnable)
+                    if (bubbleVisible) startBubbleIdleTimer()
+                }
             }
         }
     }
