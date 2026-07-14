@@ -225,7 +225,21 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    hideBubble()
+                    val touchX = event.rawX
+                    val touchY = event.rawY
+
+                    val onVolumePanel = windows.any { window ->
+                        window.packageName == "com.android.systemui" &&
+                            window.boundsInScreen.contains(touchX.toInt(), touchY.toInt()) &&
+                            window.root?.className?.let {
+                                it.contains("VolumeDialog", ignoreCase = true) ||
+                                    it.contains("VolumePanel", ignoreCase = true)
+                            } == true
+                    }
+
+                    if (!onVolumePanel) {
+                        hideBubble()
+                    }
                     return true
                 }
                 return super.onTouchEvent(event)
