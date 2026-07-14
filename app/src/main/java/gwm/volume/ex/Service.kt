@@ -98,6 +98,7 @@ class Service : AccessibilityService() {
     private var bubbleVisible = false
     private var bubbleLifecycle: LifecycleRegistry? = null
     private var bubblePreviewModeEnabled = false
+    private var lastOverlayDismissMs = 0L
 
     private val overlayLayoutParams by lazy {
         WindowManager.LayoutParams(
@@ -337,6 +338,7 @@ class Service : AccessibilityService() {
         }
 
         overlayVisible = false
+        lastOverlayDismissMs = System.currentTimeMillis()
         mainHandler.removeCallbacks(hideOverlayRunnable)
 
         val target = overlayView ?: return
@@ -383,6 +385,7 @@ class Service : AccessibilityService() {
         view.scaleX = 1f
         view.scaleY = 1f
         view.rotation = 0f
+        view.alpha = 1f
         view.animate()
             .alpha(0f)
             .setDuration(ANIMATION_DURATION)
@@ -430,6 +433,10 @@ class Service : AccessibilityService() {
     private fun showBubble() {
         if (overlayVisible) {
             startOverlayIdleTimer()
+            return
+        }
+
+        if (System.currentTimeMillis() - lastOverlayDismissMs < 300L) {
             return
         }
 
