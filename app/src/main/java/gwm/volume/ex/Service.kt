@@ -230,11 +230,11 @@ class Service : AccessibilityService() {
 
                     val touchPoint = android.graphics.Point(touchX.toInt(), touchY.toInt())
 
-                    val onVolumePanel = windows.any { window ->
+                    val onVolumePanel = windows.any { w ->
                         val bounds = android.graphics.Rect()
-                        window.getBoundsInScreen(bounds)
+                        w.getBoundsInScreen(bounds)
                         bounds.contains(touchPoint.x, touchPoint.y) &&
-                            window.getPackageName()?.contains("systemui", ignoreCase = true) == true
+                            w.getRoot()?.packageName?.contains("systemui", ignoreCase = true) == true
                     }
 
                     if (!onVolumePanel) {
