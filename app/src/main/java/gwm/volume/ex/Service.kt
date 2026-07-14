@@ -89,10 +89,6 @@ class Service : AccessibilityService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val hideOverlayRunnable = Runnable { hideOverlay() }
     private val hideBubbleRunnable = Runnable { hideBubble() }
-    private val delayedHideBubbleRunnable = Runnable {
-        Log.d(TAG, "delayedHideBubbleRunnable executing")
-        hideBubble()
-    }
 
     private var overlayView: View? = null
     private var overlayVisible = false
@@ -229,28 +225,7 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    val touchX = event.rawX
-                    val touchY = event.rawY
-
-                    Log.d(TAG, "ACTION_OUTSIDE at ($touchX, $touchY)")
-
-                    mainHandler.removeCallbacks(delayedHideBubbleRunnable)
-
-                    val onOtherWindow = windows.any { w ->
-                        if (w.getType() == android.view.accessibility.AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY) {
-                            return@any false
-                        }
-                        val bounds = android.graphics.Rect()
-                        w.getBoundsInScreen(bounds)
-                        Log.d(TAG, "  window bounds=${bounds} type=${w.getType()}")
-                        bounds.contains(touchX.toInt(), touchY.toInt())
-                    }
-
-                    Log.d(TAG, "  onOtherWindow=$onOtherWindow (${windows.size} windows)")
-
-                    if (!onOtherWindow) {
-                        mainHandler.postDelayed(delayedHideBubbleRunnable, 1000L)
-                    }
+                    hideBubble()
                     return true
                 }
                 return super.onTouchEvent(event)
@@ -458,8 +433,6 @@ class Service : AccessibilityService() {
     }
 
     private fun showBubble() {
-        mainHandler.removeCallbacks(delayedHideBubbleRunnable)
-
         if (overlayVisible) {
             startOverlayIdleTimer()
             return
@@ -597,8 +570,6 @@ class Service : AccessibilityService() {
     }
 
     private fun hideBubble() {
-        mainHandler.removeCallbacks(delayedHideBubbleRunnable)
-
         if (!bubbleVisible) {
             return
         }
@@ -702,11 +673,7 @@ class Service : AccessibilityService() {
                         hideBubble()
                     }
                 }
-                VOLUME_CHANGED_ACTION -> {
-                    Log.d(TAG, "VOLUME_CHANGED_ACTION bubbleVisible=$bubbleVisible")
-                    mainHandler.removeCallbacks(delayedHideBubbleRunnable)
-                    if (bubbleVisible) startBubbleIdleTimer()
-                }
+                VOLUME_CHANGED_ACTION -> if (bubbleVisible) startBubbleIdleTimer()
             }
         }
     }
