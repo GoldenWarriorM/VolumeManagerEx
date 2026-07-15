@@ -536,15 +536,9 @@ class MainActivity : ComponentActivity() {
                                                 },
                                                 onSystemVolumeEnabledChange = {
                                                     manager.setSystemVolumeEnabled(it)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
                                                 },
                                                 onAppVolumeListEnabledChange = {
                                                     manager.setAppVolumeListEnabled(it)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
                                                 },
                                                 onSliderVisibilityChange = { id, visible ->
                                                     manager.setSystemSliderVisible(id, visible)
