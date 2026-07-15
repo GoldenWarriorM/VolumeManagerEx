@@ -164,7 +164,9 @@ fun HiddenAppsContent(
                     items = recommended,
                     key = { it.packageName.let { "recommended_$it" } }
                 ) { app ->
-                    RecommendedCard(app) { app.hidden = true }
+                    Box(Modifier.animateItem()) {
+                        RecommendedCard(app) { app.hidden = true }
+                    }
                 }
             }
 
@@ -186,11 +188,13 @@ fun HiddenAppsContent(
                     items = filteredHidden,
                     key = { it.packageName.let { "hidden_$it" } }
                 ) { app ->
-                    HiddenAppCard(
-                        app = app,
-                        isHidden = true,
-                        onToggle = { app.hidden = false }
-                    )
+                    Box(Modifier.animateItem()) {
+                        HiddenAppCard(
+                            app = app,
+                            isHidden = true,
+                            onToggle = { app.hidden = false }
+                        )
+                    }
                 }
             }
 
@@ -211,11 +215,13 @@ fun HiddenAppsContent(
                 items = filteredVisible,
                 key = { it.packageName.let { "visible_$it" } }
                 ) { app ->
-                    HiddenAppCard(
-                        app = app,
-                        isHidden = false,
-                        onToggle = { app.hidden = true }
-                    )
+                    Box(Modifier.animateItem()) {
+                        HiddenAppCard(
+                            app = app,
+                            isHidden = false,
+                            onToggle = { app.hidden = true }
+                        )
+                    }
                 }
         }
     }
