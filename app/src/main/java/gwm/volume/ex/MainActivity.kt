@@ -79,6 +79,7 @@ import gwm.volume.ex.compose.AppVolumeList
 import gwm.volume.ex.compose.BubbleSettingsCard
 import gwm.volume.ex.compose.CrashReportDialog
 import gwm.volume.ex.compose.HiddenAppsContent
+import gwm.volume.ex.compose.SafeZonesScreen
 import gwm.volume.ex.compose.SystemVolumePanel
 import gwm.volume.ex.compose.ToggleButton
 import gwm.volume.ex.ui.theme.VolumeManagerTheme
@@ -99,7 +100,8 @@ class MainActivity : ComponentActivity() {
 
     private enum class Page {
         Main,
-        BubbleSettings
+        BubbleSettings,
+        SafeZones
     }
 
     private lateinit var application: MyApplication
@@ -227,13 +229,13 @@ class MainActivity : ComponentActivity() {
             }
 
             BackHandler(
-                enabled = Build.VERSION.SDK_INT < 34 && manager.shizukuStatus == Manager.ShizukuStatus.Connected && currentPage == Page.BubbleSettings
+                enabled = Build.VERSION.SDK_INT < 34 && manager.shizukuStatus == Manager.ShizukuStatus.Connected && currentPage != Page.Main
             ) {
                 currentPage = Page.Main
             }
 
             PredictiveBackHandler(
-                enabled = manager.shizukuStatus == Manager.ShizukuStatus.Connected && currentPage == Page.BubbleSettings
+                enabled = manager.shizukuStatus == Manager.ShizukuStatus.Connected && currentPage != Page.Main
             ) { progress ->
                 try {
                     progress.collect { event ->
@@ -297,15 +299,15 @@ class MainActivity : ComponentActivity() {
                         TopAppBar(
                             title = {
                                 Text(
-                                    if (currentPage == Page.BubbleSettings) {
-                                        "Settings"
-                                    } else {
-                                        stringResource(R.string.app_name)
+                                    when (currentPage) {
+                                        Page.BubbleSettings -> "Settings"
+                                        Page.SafeZones -> "Safe Zones"
+                                        else -> stringResource(R.string.app_name)
                                     }
                                 )
                             },
                             navigationIcon = {
-                                if (currentPage == Page.BubbleSettings) {
+                                if (currentPage != Page.Main) {
                                     IconButton(onClick = { currentPage = Page.Main }) {
                                         Icon(
                                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -460,7 +462,7 @@ class MainActivity : ComponentActivity() {
                                     targetState = currentPage,
                                     modifier = Modifier.weight(1f),
                                     transitionSpec = {
-                                        if (targetState == Page.BubbleSettings) {
+                                        if (targetState != Page.Main) {
                                             (slideInHorizontally { it / 5 } + fadeIn()) togetherWith
                                                     (slideOutHorizontally { -it / 5 } + fadeOut())
                                         } else {
@@ -470,8 +472,8 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = "MainPageTransition"
                                 ) { page ->
-                                    if (page == Page.BubbleSettings) {
-                                        val bubblePreferences = manager.bubblePreferences
+                                    val isSubPage = page == Page.BubbleSettings || page == Page.SafeZones
+                                    if (isSubPage) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -480,67 +482,78 @@ class MainActivity : ComponentActivity() {
                                                     alpha = 1f - predictiveBackProgress * 0.08f
                                                 }
                                         ) {
-                                            BubbleSettingsCard(
-                                                bubbleEnabled = bubblePreferences.enabled,
-                                                sizeScale = bubblePreferences.sizeScale,
-                                                horizontal = bubblePreferences.horizontal,
-                                                vertical = bubblePreferences.vertical,
-                                                horizontalLandscape = bubblePreferences.horizontalLandscape,
-                                                verticalLandscape = bubblePreferences.verticalLandscape,
-                                                closeDelayMs = bubblePreferences.closeDelayMs,
-                                                animationStyle = bubblePreferences.animationStyle,
-                                                systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
-                                                appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
-                                                systemSliderVisibility = manager.systemSliderVisibility,
-                                                onBubbleEnabledChange = {
-                                                    manager.setBubbleEnabled(it)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onSizeScaleChange = {
-                                                    manager.setBubbleSizeScale(it)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onPositionChange = { horizontal, vertical ->
-                                                    manager.setBubblePosition(horizontal, vertical)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onLandscapePositionChange = { horizontal, vertical ->
-                                                    manager.setBubbleLandscapePosition(horizontal, vertical)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onCloseDelayChange = {
-                                                    manager.setBubbleCloseDelayMs(it)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onAnimationStyleChange = {
-                                                    manager.setBubbleAnimationStyle(it)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onSystemVolumeEnabledChange = {
-                                                    manager.setSystemVolumeEnabled(it)
-                                                },
-                                                onAppVolumeListEnabledChange = {
-                                                    manager.setAppVolumeListEnabled(it)
-                                                },
-                                                onSliderVisibilityChange = { id, visible ->
-                                                    manager.setSystemSliderVisible(id, visible)
-                                                },
-                                                onOpenHiddenApps = {
-                                                    showHiddenAppsDialog = true
-                                                }
-                                            )
+                                            if (page == Page.BubbleSettings) {
+                                                val bubblePreferences = manager.bubblePreferences
+                                                BubbleSettingsCard(
+                                                    bubbleEnabled = bubblePreferences.enabled,
+                                                    sizeScale = bubblePreferences.sizeScale,
+                                                    horizontal = bubblePreferences.horizontal,
+                                                    vertical = bubblePreferences.vertical,
+                                                    horizontalLandscape = bubblePreferences.horizontalLandscape,
+                                                    verticalLandscape = bubblePreferences.verticalLandscape,
+                                                    closeDelayMs = bubblePreferences.closeDelayMs,
+                                                    animationStyle = bubblePreferences.animationStyle,
+                                                    systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
+                                                    appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
+                                                    systemSliderVisibility = manager.systemSliderVisibility,
+                                                    onBubbleEnabledChange = {
+                                                        manager.setBubbleEnabled(it)
+                                                        settingsModified = true
+                                                        setBubblePreviewMode(true)
+                                                        notifyBubbleSettingsChanged()
+                                                    },
+                                                    onSizeScaleChange = {
+                                                        manager.setBubbleSizeScale(it)
+                                                        settingsModified = true
+                                                        setBubblePreviewMode(true)
+                                                        notifyBubbleSettingsChanged()
+                                                    },
+                                                    onPositionChange = { horizontal, vertical ->
+                                                        manager.setBubblePosition(horizontal, vertical)
+                                                        settingsModified = true
+                                                        setBubblePreviewMode(true)
+                                                        notifyBubbleSettingsChanged()
+                                                    },
+                                                    onLandscapePositionChange = { horizontal, vertical ->
+                                                        manager.setBubbleLandscapePosition(horizontal, vertical)
+                                                        settingsModified = true
+                                                        setBubblePreviewMode(true)
+                                                        notifyBubbleSettingsChanged()
+                                                    },
+                                                    onCloseDelayChange = {
+                                                        manager.setBubbleCloseDelayMs(it)
+                                                        settingsModified = true
+                                                        setBubblePreviewMode(true)
+                                                        notifyBubbleSettingsChanged()
+                                                    },
+                                                    onAnimationStyleChange = {
+                                                        manager.setBubbleAnimationStyle(it)
+                                                        settingsModified = true
+                                                        setBubblePreviewMode(true)
+                                                        notifyBubbleSettingsChanged()
+                                                    },
+                                                    onSystemVolumeEnabledChange = {
+                                                        manager.setSystemVolumeEnabled(it)
+                                                    },
+                                                    onAppVolumeListEnabledChange = {
+                                                        manager.setAppVolumeListEnabled(it)
+                                                    },
+                                                    onSliderVisibilityChange = { id, visible ->
+                                                        manager.setSystemSliderVisible(id, visible)
+                                                    },
+                                                    onOpenHiddenApps = {
+                                                        showHiddenAppsDialog = true
+                                                    },
+                                                    onOpenSafeZones = {
+                                                        currentPage = Page.SafeZones
+                                                    }
+                                                )
+                                            } else {
+                                                SafeZonesScreen(
+                                                    zones = manager.bubblePreferences.safeZones,
+                                                    onZonesChange = manager::setSafeZones
+                                                )
+                                            }
                                         }
                                     } else {
                                         AppVolumeList(

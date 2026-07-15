@@ -11,6 +11,14 @@ data class AppPreferences(
 )
 
 @Serializable
+data class SafeZone(
+    val leftPercent: Float,
+    val topPercent: Float,
+    val rightPercent: Float,
+    val bottomPercent: Float
+)
+
+@Serializable
 data class BubblePreferences(
     var enabled: Boolean = true,
     var sizeScale: Float = 1.2f,
@@ -22,7 +30,8 @@ data class BubblePreferences(
     var closeDelayMs: Long = 3150L,
     var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default,
     var systemVolumeEnabled: Boolean = true,
-    var appVolumeListEnabled: Boolean = true
+    var appVolumeListEnabled: Boolean = true,
+    var safeZones: List<SafeZone> = emptyList()
 )
 
 @Serializable

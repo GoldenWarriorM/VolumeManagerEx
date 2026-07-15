@@ -15,6 +15,7 @@ import androidx.datastore.preferences.core.Preferences
 import gwm.volume.ex.data.App
 import gwm.volume.ex.data.BubbleAnimationStyle
 import gwm.volume.ex.data.BubblePreferences
+import gwm.volume.ex.data.SafeZone
 import gwm.volume.ex.data.AppPreferencesStore
 import gwm.volume.ex.system.AudioPlaybackConfigurationProxy
 import gwm.volume.ex.system.NotificationManagerProxy
@@ -279,6 +280,13 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
 
     fun setAppVolumeListEnabled(enabled: Boolean) {
         val next = _bubblePreferences.copy(appVolumeListEnabled = enabled)
+        if (next == _bubblePreferences) return
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
+
+    fun setSafeZones(zones: List<SafeZone>) {
+        val next = _bubblePreferences.copy(safeZones = zones)
         if (next == _bubblePreferences) return
         _bubblePreferences = next
         appPreferencesStore.setBubble(next)

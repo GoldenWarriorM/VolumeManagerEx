@@ -232,7 +232,9 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    hideBubble()
+                    if (!isInSafeZone(event)) {
+                        hideBubble()
+                    }
                     return true
                 }
                 return super.onTouchEvent(event)
@@ -635,6 +637,22 @@ class Service : AccessibilityService() {
         }
 
         animation.start()
+    }
+
+    private fun isInSafeZone(event: MotionEvent): Boolean {
+        val zones = manager.bubblePreferences.safeZones
+        if (zones.isEmpty()) return false
+
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+
+        val xPct = event.rawX / width
+        val yPct = event.rawY / height
+
+        return zones.any { zone ->
+            xPct >= zone.leftPercent && xPct <= zone.rightPercent &&
+                    yPct >= zone.topPercent && yPct <= zone.bottomPercent
+        }
     }
 
     private fun shouldIgnoreForegroundTaskVolumeKeys(): Boolean {

@@ -71,7 +71,8 @@ fun BubbleSettingsCard(
     onSystemVolumeEnabledChange: (Boolean) -> Unit,
     onAppVolumeListEnabledChange: (Boolean) -> Unit,
     onSliderVisibilityChange: (String, Boolean) -> Unit,
-    onOpenHiddenApps: () -> Unit
+    onOpenHiddenApps: () -> Unit,
+    onOpenSafeZones: () -> Unit
 ) {
     val animationOptions = listOf(
         BubbleAnimationStyle.Default to "Default",
@@ -266,6 +267,29 @@ fun BubbleSettingsCard(
                 }
                 Text(
                     text = "Hidden apps are hidden from the overlay volume list.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        Card {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Safe Zones",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(onClick = onOpenSafeZones) {
+                        Text("Manage")
+                    }
+                }
+                Text(
+                    text = "Screen areas where tapping won't dismiss the bubble.",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
