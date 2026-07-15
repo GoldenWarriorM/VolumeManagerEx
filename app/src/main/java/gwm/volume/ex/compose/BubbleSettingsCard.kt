@@ -193,12 +193,11 @@ fun BubbleSettingsCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(16.dp)
             ) {
                 Text("Overlay Panel", style = MaterialTheme.typography.titleLarge)
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
                     Icon(
                         Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = null,
@@ -226,7 +225,7 @@ fun BubbleSettingsCard(
                     exit = fadeOut(animationSpec = tween(durationMillis = 200)) +
                            shrinkVertically(animationSpec = tween(durationMillis = 200), shrinkTowards = Alignment.Top)
                 ) {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         for ((id, label) in streamLabels) {
                         Row(
                             modifier = Modifier.padding(start = 32.dp),
