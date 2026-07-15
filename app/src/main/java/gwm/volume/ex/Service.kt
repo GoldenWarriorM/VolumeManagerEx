@@ -61,6 +61,8 @@ import gwm.volume.ex.data.BubbleAnimationStyle
 import gwm.volume.ex.system.ActivityTaskManagerProxy
 import gwm.volume.ex.ui.theme.VolumeManagerTheme
 import org.joor.Reflect
+import rikka.shizuku.Shizuku
+import rikka.shizuku.ShizukuRemoteProcess
 import java.util.Objects
 import kotlin.math.roundToInt
 
@@ -518,31 +520,48 @@ class Service : AccessibilityService() {
 
     private fun getVolumePanelBounds(): Rect? {
         return try {
-            @Suppress("DEPRECATION")
-            val windowList: List<AccessibilityWindowInfo> = windows ?: return null
-            Log.i(TAG, "getVolumePanelBounds: got ${windowList.size} windows from accessibility")
-            for (win in windowList) {
-                val type = win.type
-                val bounds = Rect()
-                win.getBoundsInScreen(bounds)
-                Log.i(TAG, "getVolumePanelBounds: id=${win.id} type=$type bounds=${bounds.flattenToString()}")
-                if (type == AccessibilityWindowInfo.TYPE_SYSTEM && !bounds.isEmpty) {
-                    val w = bounds.width()
-                    val h = bounds.height()
-                    val displayW = resources.displayMetrics.widthPixels
-                    val displayH = resources.displayMetrics.heightPixels
-                    if (w >= displayW * 0.7f && h <= displayH * 0.3f) {
-                        Log.i(TAG, "getVolumePanelBounds: volume panel candidate at ${bounds.flattenToString()}")
-                        return bounds
+            val shizukuProcess = Reflect.onClass(Shizuku::class.java)
+                .call("newProcess", arrayOf("dumpsys", "window", "windows"), null, null)
+                .get<ShizukuRemoteProcess>()
+            val output = shizukuProcess.inputStream.bufferedReader().readText()
+            shizukuProcess.waitFor()
+
+            val displayW = resources.displayMetrics.widthPixels
+            val displayH = resources.displayMetrics.heightPixels
+            val targetArea = displayW * displayH
+            var bestBounds: Rect? = null
+            var bestOverlap = 0f
+
+            val windowBlocks = output.split("Window #")
+            for (block in windowBlocks) {
+                if (block.contains("VolumePanel") ||
+                    block.contains("volume") ||
+                    block.contains("VOLUME") ||
+                    block.contains("VolumeDialog")) {
+                    val frameMatch = Regex("mContainingFrame\\s*=\\s*\\((-?\\d+),(-?\\d+)\\s*\\)\\s*\\((-?\\d+)x(-?\\d+)\\)").find(block)
+                    if (frameMatch != null) {
+                        val left = frameMatch.groupValues[1].toIntOrNull() ?: continue
+                        val top = frameMatch.groupValues[2].toIntOrNull() ?: continue
+                        val w = frameMatch.groupValues[3].toIntOrNull() ?: continue
+                        val h = frameMatch.groupValues[4].toIntOrNull() ?: continue
+                        val bounds = Rect(left, top, left + w, top + h)
+                        val area = w.toFloat() * h.toFloat()
+                        val overlap = area / targetArea
+                        if (overlap > bestOverlap && w >= displayW * 0.5f && h <= displayH * 0.35f) {
+                            bestBounds = bounds
+                            bestOverlap = overlap
+                        }
                     }
                 }
             }
-            Log.w(TAG, "getVolumePanelBounds: no volume panel window found")
-            for (win in windowList) {
-                val b = Rect()
-                win.getBoundsInScreen(b)
-                Log.i(TAG, "getVolumePanelBounds: fallback id=${win.id} type=${win.type} bounds=${b.flattenToString()}")
+
+            if (bestBounds != null) {
+                Log.i(TAG, "getVolumePanelBounds: found via dumpsys at ${bestBounds.flattenToString()}")
+                return bestBounds
             }
+
+            Log.w(TAG, "getVolumePanelBounds: no volume panel found in dumpsys")
+            Log.i(TAG, "getVolumePanelBounds: dumpsys output:\n$output")
             null
         } catch (e: Exception) {
             Log.e(TAG, "getVolumePanelBounds: error", e)
@@ -796,36 +815,6 @@ class Service : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         Log.i(TAG, "onAccessibilityEvent: type=${event.eventType} class=${event.className} pkg=${event.packageName}")
-        if (manager.shizukuStatus != Manager.ShizukuStatus.Connected) return
-        if (!manager.bubblePreferences.volumePanelOverlayEnabled) return
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-            event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            captureVolumePanelWindow()
-        }
-    }
-
-    private fun captureVolumePanelWindow() {
-        val windowList = try {
-            @Suppress("DEPRECATION")
-            windows
-        } catch (_: Exception) { return } ?: return
-        for (win in windowList) {
-            if (win.type == AccessibilityWindowInfo.TYPE_SYSTEM) {
-                val bounds = Rect()
-                win.getBoundsInScreen(bounds)
-                if (!bounds.isEmpty) {
-                    val w = bounds.width()
-                    val h = bounds.height()
-                    val displayW = resources.displayMetrics.widthPixels
-                    val displayH = resources.displayMetrics.heightPixels
-                    if (w >= displayW * 0.7f && h <= displayH * 0.3f) {
-                        Log.i(TAG, "captureVolumePanelWindow: captured ${bounds.flattenToString()}")
-                        volumePanelBounds = bounds
-                        snapToVolumePanel(bounds)
-                    }
-                }
-            }
-        }
     }
 
     override fun onInterrupt() {
