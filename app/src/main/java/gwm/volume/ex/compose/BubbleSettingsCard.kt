@@ -205,7 +205,7 @@ fun BubbleSettingsCard(
                             Icon(
                                 imageVector = streamIcons[id] ?: Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = null,
-                                modifier = Modifier.requiredSize(24.dp).padding(end = 8.dp)
+                                modifier = Modifier.requiredSize(32.dp).padding(end = 8.dp)
                             )
                             Text(label, modifier = Modifier.weight(1f))
                             Switch(
