@@ -12,6 +12,7 @@ data class AppPreferences(
 
 @Serializable
 data class BubblePreferences(
+    var enabled: Boolean = true,
     var sizeScale: Float = 1.0f,
     var horizontal: Float = 0.90f,
     var vertical: Float = 0.50f,

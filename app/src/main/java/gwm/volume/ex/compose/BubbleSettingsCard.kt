@@ -45,6 +45,8 @@ import java.util.Locale
 
 @Composable
 fun BubbleSettingsCard(
+    bubbleEnabled: Boolean,
+    settingsModified: Boolean = true,
     sizeScale: Float,
     horizontal: Float,
     vertical: Float,
@@ -59,6 +61,7 @@ fun BubbleSettingsCard(
     onShadowEnabledChange: (Boolean) -> Unit,
     onCloseDelayChange: (Long) -> Unit,
     onAnimationStyleChange: (BubbleAnimationStyle) -> Unit,
+    onBubbleEnabledChange: (Boolean) -> Unit,
     onSystemVolumeEnabledChange: (Boolean) -> Unit,
     onAppVolumeListEnabledChange: (Boolean) -> Unit,
     onSliderVisibilityChange: (String, Boolean) -> Unit,
@@ -92,21 +95,18 @@ fun BubbleSettingsCard(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Quick Bubble", style = MaterialTheme.typography.titleLarge)
-                Text(
-                    "The real floating bubble is shown live while this page is open, so changes reflect directly on screen.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+                Text("Volume Bubble", style = MaterialTheme.typography.titleLarge)
 
-        Card {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+                if (settingsModified) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Enabled", modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = bubbleEnabled,
+                            onCheckedChange = onBubbleEnabledChange
+                        )
+                    }
+                }
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Bubble shadow", modifier = Modifier.weight(1f))
                     Switch(

@@ -206,6 +206,7 @@ class MainActivity : ComponentActivity() {
             var showHiddenAppsDialog by remember { mutableStateOf(false) }
             var currentPage by rememberSaveable { mutableStateOf(Page.Main) }
             var predictiveBackProgress by remember { mutableFloatStateOf(0f) }
+            var settingsModified by remember { mutableStateOf(false) }
 
             LaunchedEffect(showCrashReport) {
                 if (showCrashReport) {
@@ -217,12 +218,6 @@ class MainActivity : ComponentActivity() {
                 if (manager.shizukuStatus != Manager.ShizukuStatus.Connected) {
                     currentPage = Page.Main
                 }
-            }
-
-            LaunchedEffect(currentPage, manager.shizukuStatus) {
-                val enableBubblePreview =
-                    manager.shizukuStatus == Manager.ShizukuStatus.Connected && currentPage == Page.BubbleSettings
-                setBubblePreviewMode(enableBubblePreview)
             }
 
             DisposableEffect(Unit) {
@@ -486,6 +481,8 @@ class MainActivity : ComponentActivity() {
                                                 }
                                         ) {
                                             BubbleSettingsCard(
+                                                bubbleEnabled = bubblePreferences.enabled,
+                                                settingsModified = settingsModified,
                                                 sizeScale = bubblePreferences.sizeScale,
                                                 horizontal = bubblePreferences.horizontal,
                                                 vertical = bubblePreferences.vertical,
@@ -495,32 +492,50 @@ class MainActivity : ComponentActivity() {
                                                 systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
                                                 appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
                                                 systemSliderVisibility = manager.systemSliderVisibility,
+                                                onBubbleEnabledChange = {
+                                                    manager.setBubbleEnabled(it)
+                                                    notifyBubbleSettingsChanged()
+                                                },
                                                 onSizeScaleChange = {
                                                     manager.setBubbleSizeScale(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onPositionChange = { horizontal, vertical ->
                                                     manager.setBubblePosition(horizontal, vertical)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onShadowEnabledChange = {
                                                     manager.setBubbleShadowEnabled(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onCloseDelayChange = {
                                                     manager.setBubbleCloseDelayMs(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onAnimationStyleChange = {
                                                     manager.setBubbleAnimationStyle(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onSystemVolumeEnabledChange = {
                                                     manager.setSystemVolumeEnabled(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onAppVolumeListEnabledChange = {
                                                     manager.setAppVolumeListEnabled(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onSliderVisibilityChange = { id, visible ->
