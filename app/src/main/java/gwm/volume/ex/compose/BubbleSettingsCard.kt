@@ -62,7 +62,6 @@ fun BubbleSettingsCard(
     animationStyle: BubbleAnimationStyle,
     systemVolumeEnabled: Boolean,
     appVolumeListEnabled: Boolean,
-    volumePanelOverlayEnabled: Boolean,
     systemSliderVisibility: Map<String, Boolean>,
     onSizeScaleChange: (Float) -> Unit,
     onPositionChange: (Float, Float) -> Unit,
@@ -73,7 +72,6 @@ fun BubbleSettingsCard(
     onBubbleEnabledChange: (Boolean) -> Unit,
     onSystemVolumeEnabledChange: (Boolean) -> Unit,
     onAppVolumeListEnabledChange: (Boolean) -> Unit,
-    onVolumePanelOverlayEnabledChange: (Boolean) -> Unit,
     onSliderVisibilityChange: (String, Boolean) -> Unit,
     onOpenHiddenApps: () -> Unit
 ) {
@@ -257,28 +255,6 @@ fun BubbleSettingsCard(
                         onCheckedChange = onAppVolumeListEnabledChange
                     )
                 }
-            }
-        }
-
-        Card {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Snap to volume panel (experimental)", modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = volumePanelOverlayEnabled,
-                        onCheckedChange = onVolumePanelOverlayEnabledChange
-                    )
-                }
-                Text(
-                    text = "Bubble will be positioned over the system volume panel.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
 

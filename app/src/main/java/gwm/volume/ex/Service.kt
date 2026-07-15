@@ -12,10 +12,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
-import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
@@ -61,7 +59,6 @@ import gwm.volume.ex.data.BubbleAnimationStyle
 import gwm.volume.ex.system.ActivityTaskManagerProxy
 import gwm.volume.ex.ui.theme.VolumeManagerTheme
 import org.joor.Reflect
-import rikka.shizuku.ShizukuBinderWrapper
 import java.util.Objects
 import kotlin.math.roundToInt
 
@@ -459,35 +456,6 @@ class Service : AccessibilityService() {
             return
         }
 
-        if (manager.bubblePreferences.volumePanelOverlayEnabled) {
-            val panelBounds = getVolumePanelBounds()
-            if (panelBounds != null) {
-                val shadowPaddingPx = if (manager.bubblePreferences.shadowEnabled) {
-                    (resources.displayMetrics.density * BUBBLE_SHADOW_PADDING_DP).roundToInt()
-                } else 0
-                val windowWidth = panelBounds.width() + shadowPaddingPx * 2
-                val windowHeight = panelBounds.height() + shadowPaddingPx * 2
-                bubbleLayoutParams.width = windowWidth
-                bubbleLayoutParams.height = windowHeight
-                bubbleLayoutParams.x = panelBounds.left - shadowPaddingPx
-                bubbleLayoutParams.y = panelBounds.top - shadowPaddingPx
-
-                if (bubbleView == null) {
-                    bubbleView = createBubbleView()
-                    windowManager.addView(bubbleView, bubbleLayoutParams)
-                } else {
-                    windowManager.updateViewLayout(bubbleView, bubbleLayoutParams)
-                }
-
-                if (!bubbleVisible) {
-                    bubbleVisible = true
-                    animateBubbleIn(bubbleView!!)
-                }
-                startBubbleIdleTimer()
-                return
-            }
-        }
-
         updateBubbleLayout()
 
         if (bubbleView == null) {
@@ -501,37 +469,6 @@ class Service : AccessibilityService() {
         }
 
         startBubbleIdleTimer()
-    }
-
-    private fun getVolumePanelBounds(): Rect? {
-        return try {
-            val windowBinder = Reflect.onClass("android.os.ServiceManager")
-                .call("getService", "window")
-                .get<IBinder>() ?: return null
-            val wrappedBinder = ShizukuBinderWrapper(windowBinder)
-            val wm = Reflect.onClass("android.view.IWindowManager\$Stub")
-                .call("asInterface", wrappedBinder)
-                .get<Any>() ?: return null
-            val windowInfos = Reflect.on(wm).call("getWindowInfos").get<List<Any>>() ?: return null
-            for (info in windowInfos) {
-                val type = try {
-                    Reflect.on(info).field("type").get<Int>()
-                } catch (_: Exception) {
-                    Reflect.on(info).call("getType").get<Int>()
-                }
-                if (type == 2038) {
-                    val frame = try {
-                        Reflect.on(info).field("frame").get<Rect>()
-                    } catch (_: Exception) {
-                        Reflect.on(info).call("getFrame").get<Rect>()
-                    } ?: continue
-                    return frame
-                }
-            }
-            null
-        } catch (_: Exception) {
-            null
-        }
     }
 
     private fun animateBubbleIn(view: View) {
