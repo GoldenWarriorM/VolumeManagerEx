@@ -430,7 +430,7 @@ class Service : AccessibilityService() {
             return
         }
 
-        if (manager.apps.none { it.value.isPlayer }) {
+        if (manager.audioManager.activePlaybackConfigurations.isEmpty()) {
             hideBubble()
             return
         }
