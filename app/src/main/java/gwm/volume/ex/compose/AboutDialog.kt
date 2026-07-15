@@ -46,27 +46,10 @@ fun AboutDialog(
             },
             text = {
                 Column {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.alignByBaseline()
-                        )
-                        TextButton(
-                            onClick = {
-                                val clipboard = context.getSystemService(ClipboardManager::class.java)
-                                val clip =
-                                    ClipData.newPlainText("VolumeManagerEx", BuildConfig.VERSION_NAME)
-                                clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.alignByBaseline()
-                        ) {
-                            Text("Copy")
-                        }
-                    }
+                    Text(
+                        text = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
                     Text(
                         text = "Author: gwm",
@@ -82,31 +65,29 @@ fun AboutDialog(
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        TextButton(
-                            onClick = {
-                                val intent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://github.com/DDOneApps/VolumeManagerPlus".toUri()
-                                )
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            }
-                        ) {
-                            Text("DDOneApps/VolumeManagerPlus", style = MaterialTheme.typography.labelSmall)
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://github.com/DDOneApps/VolumeManagerPlus".toUri()
+                            )
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
                         }
-                        TextButton(
-                            onClick = {
-                                val intent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://github.com/yume-chan/VolumeManager".toUri()
-                                )
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            }
-                        ) {
-                            Text("yume-chan/VolumeManager", style = MaterialTheme.typography.labelSmall)
+                    ) {
+                        Text("DDOneApps/VolumeManagerPlus", style = MaterialTheme.typography.labelSmall)
+                    }
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://github.com/yume-chan/VolumeManager".toUri()
+                            )
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
                         }
+                    ) {
+                        Text("yume-chan/VolumeManager", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             },
