@@ -136,17 +136,17 @@ fun SafeZonesScreen(
                                 val rawNy = (c.position.y / ch).coerceIn(mnY, 1f - mnY)
                                 val z = currentZones[zi]
                                 val nx = when (hitHandle) {
-                                    0 -> rawNx.coerceIn(mnX, z.rightPercent - eps)
-                                    1 -> rawNx.coerceIn(z.leftPercent + eps, 1f - mnX)
-                                    2 -> rawNx.coerceIn(mnX, z.rightPercent - eps)
-                                    3 -> rawNx.coerceIn(z.leftPercent + eps, 1f - mnX)
+                                    0 -> maxOf(mnX, minOf(rawNx, z.rightPercent - eps))
+                                    1 -> maxOf(z.leftPercent + eps, minOf(rawNx, 1f - mnX))
+                                    2 -> maxOf(mnX, minOf(rawNx, z.rightPercent - eps))
+                                    3 -> maxOf(z.leftPercent + eps, minOf(rawNx, 1f - mnX))
                                     else -> rawNx
                                 }
                                 val ny = when (hitHandle) {
-                                    0 -> rawNy.coerceIn(mnY, z.bottomPercent - eps)
-                                    1 -> rawNy.coerceIn(mnY, z.bottomPercent - eps)
-                                    2 -> rawNy.coerceIn(z.topPercent + eps, 1f - mnY)
-                                    3 -> rawNy.coerceIn(z.topPercent + eps, 1f - mnY)
+                                    0 -> maxOf(mnY, minOf(rawNy, z.bottomPercent - eps))
+                                    1 -> maxOf(mnY, minOf(rawNy, z.bottomPercent - eps))
+                                    2 -> maxOf(z.topPercent + eps, minOf(rawNy, 1f - mnY))
+                                    3 -> maxOf(z.topPercent + eps, minOf(rawNy, 1f - mnY))
                                     else -> rawNy
                                 }
                                 if (nx != lastXPct || ny != lastYPct) dragged = true
@@ -171,8 +171,8 @@ fun SafeZonesScreen(
                                 val event = awaitPointerEvent()
                                 val c = event.changes.firstOrNull { it.id == down.id } ?: break
                                 if (!c.pressed) break
-                                val nx = (c.position.x / cw).coerceIn(mnX, 1f - mnX)
-                                val ny = (c.position.y / ch).coerceIn(mnY, 1f - mnY)
+                                val nx = (c.position.x / cw).coerceIn(0f, 1f)
+                                val ny = (c.position.y / ch).coerceIn(0f, 1f)
                                 val dx = nx - lastXPct
                                 val dy = ny - lastYPct
                                 if (dx != 0f || dy != 0f) dragged = true
@@ -180,8 +180,8 @@ fun SafeZonesScreen(
                                     val z = currentZones[zi]
                                     val w = z.rightPercent - z.leftPercent
                                     val h = z.bottomPercent - z.topPercent
-                                    val newLeft = (z.leftPercent + dx).coerceIn(mnX, 1f - w - mnX)
-                                    val newTop = (z.topPercent + dy).coerceIn(mnY, 1f - h - mnY)
+                                    val newLeft = maxOf(mnX, minOf(z.leftPercent + dx, 1f - w - mnX))
+                                    val newTop = maxOf(mnY, minOf(z.topPercent + dy, 1f - h - mnY))
                                     onZonesChange(currentZones.toMutableList().apply {
                                         set(zi, sanitize(SafeZone(
                                             newLeft, newTop,
