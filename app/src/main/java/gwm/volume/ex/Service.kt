@@ -314,11 +314,6 @@ class Service : AccessibilityService() {
     }
 
     private fun startBubbleIdleTimer() {
-        if (bubblePreviewModeEnabled) {
-            mainHandler.removeCallbacks(hideBubbleRunnable)
-            return
-        }
-
         mainHandler.removeCallbacks(hideBubbleRunnable)
         val delayMs = manager.bubblePreferences.closeDelayMs.coerceIn(300L, 15000L)
         mainHandler.postDelayed(hideBubbleRunnable, delayMs)
@@ -675,9 +670,7 @@ class Service : AccessibilityService() {
                 ACTION_BUBBLE_PREVIEW_MODE -> {
                     bubblePreviewModeEnabled =
                         intent.getBooleanExtra(EXTRA_BUBBLE_PREVIEW_ENABLED, false)
-                    if (bubblePreviewModeEnabled && !overlayVisible) {
-                        showBubble()
-                    } else if (!bubblePreviewModeEnabled) {
+                    if (!bubblePreviewModeEnabled) {
                         hideBubble()
                     }
                 }
