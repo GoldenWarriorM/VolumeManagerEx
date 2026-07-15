@@ -9,14 +9,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
@@ -30,17 +34,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import gwm.volume.ex.data.SafeZone
@@ -57,6 +63,12 @@ fun SafeZonesScreen(
     var selectedIndex by remember { mutableIntStateOf(-1) }
     var drawingRect by remember { mutableStateOf<SafeZone?>(null) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+    val currentZones by rememberUpdatedState(zones)
+
+    val config = LocalConfiguration.current
+    val density = LocalDensity.current
+    val screenRatio = config.screenWidthDp.toFloat() / config.screenHeightDp.toFloat()
+    val handleHitPx = with(density) { 28.dp.toPx() }
 
     val bgColor = Color(0xFF1A1A2E)
     val zoneColors = listOf(
@@ -71,7 +83,10 @@ fun SafeZonesScreen(
     val drawPreviewBorder = Color(0xCCFFFFFF)
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
@@ -83,21 +98,24 @@ fun SafeZonesScreen(
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(370.dp)
+                .heightIn(max = 460.dp)
+                .aspectRatio(screenRatio)
                 .onSizeChanged { canvasSize = it }
-                .pointerInput(zones.size, selectedIndex) {
+                .pointerInput(zones.size) {
                     awaitEachGesture {
                         val down = awaitFirstDown(requireUnconsumed = false)
                         val cw = size.width.toFloat()
                         val ch = size.height.toFloat()
                         val xPct = (down.position.x / cw).coerceIn(0f, 1f)
                         val yPct = (down.position.y / ch).coerceIn(0f, 1f)
+                        val zn = currentZones
+                        val handleThresholdPct = handleHitPx / cw
 
-                        val hitHandle = findHandle(zones, selectedIndex, xPct, yPct, cw)
-                        val hitSelected = hitHandle == null && selectedIndex in zones.indices &&
-                                isInside(zones[selectedIndex], xPct, yPct)
+                        val hitHandle = findHandle(zn, selectedIndex, xPct, yPct, handleThresholdPct)
+                        val hitSelected = hitHandle == null && selectedIndex in zn.indices &&
+                                isInside(zn[selectedIndex], xPct, yPct)
                         val hitAnyIndex = if (hitHandle == null && !hitSelected)
-                            zones.indexOfLast { isInside(it, xPct, yPct) }
+                            zn.indexOfLast { isInside(it, xPct, yPct) }
                         else -1
 
                         var lastXPct = xPct
@@ -113,14 +131,17 @@ fun SafeZonesScreen(
                                 val nx = (c.position.x / cw).coerceIn(0f, 1f)
                                 val ny = (c.position.y / ch).coerceIn(0f, 1f)
                                 if (nx != lastXPct || ny != lastYPct) dragged = true
+                                val z = currentZones[zi]
                                 val updated = when (hitHandle) {
-                                    0 -> zones[zi].copy(leftPercent = nx, topPercent = ny)
-                                    1 -> zones[zi].copy(rightPercent = nx, topPercent = ny)
-                                    2 -> zones[zi].copy(leftPercent = nx, bottomPercent = ny)
-                                    3 -> zones[zi].copy(rightPercent = nx, bottomPercent = ny)
-                                    else -> zones[zi]
+                                    0 -> z.copy(leftPercent = nx, topPercent = ny)
+                                    1 -> z.copy(rightPercent = nx, topPercent = ny)
+                                    2 -> z.copy(leftPercent = nx, bottomPercent = ny)
+                                    3 -> z.copy(rightPercent = nx, bottomPercent = ny)
+                                    else -> z
                                 }.let { sanitize(it) }
-                                if (dragged) onZonesChange(zones.toMutableList().apply { set(zi, updated) })
+                                if (dragged) {
+                                    onZonesChange(currentZones.toMutableList().apply { set(zi, updated) })
+                                }
                                 lastXPct = nx
                                 lastYPct = ny
                                 c.consume()
@@ -137,8 +158,8 @@ fun SafeZonesScreen(
                                 val dy = ny - lastYPct
                                 if (dx != 0f || dy != 0f) dragged = true
                                 if (dragged) {
-                                    val z = zones[zi]
-                                    onZonesChange(zones.toMutableList().apply {
+                                    val z = currentZones[zi]
+                                    onZonesChange(currentZones.toMutableList().apply {
                                         set(zi, sanitize(SafeZone(
                                             z.leftPercent + dx, z.topPercent + dy,
                                             z.rightPercent + dx, z.bottomPercent + dy
@@ -162,8 +183,8 @@ fun SafeZonesScreen(
                                 val dy = ny - lastYPct
                                 if (dx != 0f || dy != 0f) dragged = true
                                 if (dragged) {
-                                    val z = zones[zi]
-                                    onZonesChange(zones.toMutableList().apply {
+                                    val z = currentZones[zi]
+                                    onZonesChange(currentZones.toMutableList().apply {
                                         set(zi, sanitize(SafeZone(
                                             z.leftPercent + dx, z.topPercent + dy,
                                             z.rightPercent + dx, z.bottomPercent + dy
@@ -185,7 +206,7 @@ fun SafeZonesScreen(
                                 val c = event.changes.firstOrNull { it.id == down.id } ?: break
                                 if (!c.pressed) {
                                     if (dragged && min(abs(ex - sx), abs(ey - sy)) > 0.015f) {
-                                        onZonesChange(zones + sanitize(SafeZone(
+                                        onZonesChange(currentZones + sanitize(SafeZone(
                                             minOf(sx, ex), minOf(sy, ey),
                                             maxOf(sx, ex), maxOf(sy, ey)
                                         )))
@@ -228,14 +249,14 @@ fun SafeZonesScreen(
                     style = Stroke(width = 2f)
                 )
                 if (isSel) {
-                    val hs = 10f
+                    val hs = 16f
                     val corners = listOf(
                         rect.topLeft, Offset(rect.right, rect.top),
                         Offset(rect.left, rect.bottom), Offset(rect.right, rect.bottom)
                     )
                     for (corner in corners) {
                         drawCircle(color = handleColor, radius = hs, center = corner)
-                        drawCircle(color = Color.White, radius = 4f, center = corner)
+                        drawCircle(color = Color.White, radius = 6f, center = corner)
                     }
                 }
             }
@@ -323,18 +344,17 @@ private fun findHandle(
     selectedIndex: Int,
     xPct: Float,
     yPct: Float,
-    canvasWidthPx: Float
+    thresholdPct: Float
 ): Int? {
     if (selectedIndex !in zones.indices) return null
     val zone = zones[selectedIndex]
-    val threshold = 14f / canvasWidthPx
     val corners = listOf(
         Offset(zone.leftPercent, zone.topPercent),
         Offset(zone.rightPercent, zone.topPercent),
         Offset(zone.leftPercent, zone.bottomPercent),
         Offset(zone.rightPercent, zone.bottomPercent)
     )
-    val idx = corners.indexOfFirst { (it - Offset(xPct, yPct)).getDistance() < threshold }
+    val idx = corners.indexOfFirst { (it - Offset(xPct, yPct)).getDistance() < thresholdPct }
     return if (idx >= 0) idx else null
 }
 
