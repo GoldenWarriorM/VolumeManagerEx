@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.graphics.Point
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -232,7 +233,7 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    if (!isInSafeZone(event)) {
+                    if (!isInSafeZone(event, this)) {
                         hideBubble()
                     }
                     return true
@@ -639,15 +640,32 @@ class Service : AccessibilityService() {
         animation.start()
     }
 
-    private fun isInSafeZone(event: MotionEvent): Boolean {
+    private fun isInSafeZone(event: MotionEvent, view: View): Boolean {
         val zones = manager.bubblePreferences.safeZones
         if (zones.isEmpty()) return false
 
-        val width = resources.displayMetrics.widthPixels
-        val height = resources.displayMetrics.heightPixels
+        val display = windowManager.defaultDisplay
+        val realSize = android.graphics.Point()
+        display.getRealSize(realSize)
+        val width = realSize.x.toFloat()
+        val height = realSize.y.toFloat()
 
-        val xPct = event.rawX / width
-        val yPct = event.rawY / height
+        val rawX = event.rawX
+        val rawY = event.rawY
+        val screenX: Float
+        val screenY: Float
+        if (rawX == 0f && rawY == 0f) {
+            val location = IntArray(2)
+            view.getLocationOnScreen(location)
+            screenX = event.x + location[0]
+            screenY = event.y + location[1]
+        } else {
+            screenX = rawX
+            screenY = rawY
+        }
+
+        val xPct = screenX / width
+        val yPct = screenY / height
 
         return zones.any { zone ->
             xPct >= zone.leftPercent && xPct <= zone.rightPercent &&

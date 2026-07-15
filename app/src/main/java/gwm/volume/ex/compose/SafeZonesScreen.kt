@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -133,10 +135,22 @@ fun SafeZonesScreen(
                                 if (nx != lastXPct || ny != lastYPct) dragged = true
                                 val z = currentZones[zi]
                                 val updated = when (hitHandle) {
-                                    0 -> z.copy(leftPercent = nx, topPercent = ny)
-                                    1 -> z.copy(rightPercent = nx, topPercent = ny)
-                                    2 -> z.copy(leftPercent = nx, bottomPercent = ny)
-                                    3 -> z.copy(rightPercent = nx, bottomPercent = ny)
+                                    0 -> z.copy(
+                                        leftPercent = minOf(nx, z.rightPercent),
+                                        topPercent = minOf(ny, z.bottomPercent)
+                                    )
+                                    1 -> z.copy(
+                                        rightPercent = maxOf(nx, z.leftPercent),
+                                        topPercent = minOf(ny, z.bottomPercent)
+                                    )
+                                    2 -> z.copy(
+                                        leftPercent = minOf(nx, z.rightPercent),
+                                        bottomPercent = maxOf(ny, z.topPercent)
+                                    )
+                                    3 -> z.copy(
+                                        rightPercent = maxOf(nx, z.leftPercent),
+                                        bottomPercent = maxOf(ny, z.topPercent)
+                                    )
                                     else -> z
                                 }.let { sanitize(it) }
                                 if (dragged) {
@@ -146,8 +160,9 @@ fun SafeZonesScreen(
                                 lastYPct = ny
                                 c.consume()
                             }
-                        } else if (hitSelected) {
-                            val zi = selectedIndex
+                        } else if (hitSelected || hitAnyIndex >= 0) {
+                            if (hitAnyIndex >= 0) selectedIndex = hitAnyIndex
+                            val zi = if (hitAnyIndex >= 0) hitAnyIndex else selectedIndex
                             while (true) {
                                 val event = awaitPointerEvent()
                                 val c = event.changes.firstOrNull { it.id == down.id } ?: break
@@ -159,35 +174,14 @@ fun SafeZonesScreen(
                                 if (dx != 0f || dy != 0f) dragged = true
                                 if (dragged) {
                                     val z = currentZones[zi]
+                                    val w = z.rightPercent - z.leftPercent
+                                    val h = z.bottomPercent - z.topPercent
+                                    val newLeft = (z.leftPercent + dx).coerceIn(0f, 1f - w)
+                                    val newTop = (z.topPercent + dy).coerceIn(0f, 1f - h)
                                     onZonesChange(currentZones.toMutableList().apply {
                                         set(zi, sanitize(SafeZone(
-                                            z.leftPercent + dx, z.topPercent + dy,
-                                            z.rightPercent + dx, z.bottomPercent + dy
-                                        )))
-                                    })
-                                }
-                                lastXPct = nx
-                                lastYPct = ny
-                                c.consume()
-                            }
-                        } else if (hitAnyIndex >= 0) {
-                            selectedIndex = hitAnyIndex
-                            val zi = hitAnyIndex
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                val c = event.changes.firstOrNull { it.id == down.id } ?: break
-                                if (!c.pressed) break
-                                val nx = (c.position.x / cw).coerceIn(0f, 1f)
-                                val ny = (c.position.y / ch).coerceIn(0f, 1f)
-                                val dx = nx - lastXPct
-                                val dy = ny - lastYPct
-                                if (dx != 0f || dy != 0f) dragged = true
-                                if (dragged) {
-                                    val z = currentZones[zi]
-                                    onZonesChange(currentZones.toMutableList().apply {
-                                        set(zi, sanitize(SafeZone(
-                                            z.leftPercent + dx, z.topPercent + dy,
-                                            z.rightPercent + dx, z.bottomPercent + dy
+                                            newLeft, newTop,
+                                            newLeft + w, newTop + h
                                         )))
                                     })
                                 }
@@ -297,7 +291,7 @@ fun SafeZonesScreen(
         }
 
         if (zones.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
             zones.forEachIndexed { index, zone ->
                 val color = zoneColors[index % zoneColors.size]
                 Row(
@@ -365,11 +359,15 @@ private fun isInside(zone: SafeZone, xPct: Float, yPct: Float): Boolean {
 }
 
 private fun sanitize(z: SafeZone): SafeZone {
+    val left = z.leftPercent.coerceIn(0f, 1f)
+    val right = z.rightPercent.coerceIn(0f, 1f)
+    val top = z.topPercent.coerceIn(0f, 1f)
+    val bottom = z.bottomPercent.coerceIn(0f, 1f)
     return SafeZone(
-        leftPercent = z.leftPercent.coerceIn(0f, 1f),
-        topPercent = z.topPercent.coerceIn(0f, 1f),
-        rightPercent = z.rightPercent.coerceIn(0f, 1f),
-        bottomPercent = z.bottomPercent.coerceIn(0f, 1f)
+        leftPercent = minOf(left, right),
+        topPercent = minOf(top, bottom),
+        rightPercent = maxOf(left, right),
+        bottomPercent = maxOf(top, bottom)
     )
 }
 
