@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.animateItem
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -130,6 +131,7 @@ private fun ExcludedAppRow(
 
     Row(
         modifier = Modifier
+            .animateItem()
             .fillMaxWidth()
             .background(bgColor)
             .padding(horizontal = 4.dp, vertical = 2.dp),
