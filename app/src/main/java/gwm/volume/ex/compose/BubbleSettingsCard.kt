@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -178,7 +179,7 @@ fun BubbleSettingsCard(
                     Icon(
                         Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp).padding(end = 12.dp)
+                        modifier = Modifier.requiredSize(32.dp).padding(end = 8.dp)
                     )
                     Text("Show system volume sliders", modifier = Modifier.weight(1f))
                     Switch(
@@ -204,7 +205,7 @@ fun BubbleSettingsCard(
                             Icon(
                                 imageVector = streamIcons[id] ?: Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp).padding(end = 8.dp)
+                                modifier = Modifier.requiredSize(24.dp).padding(end = 8.dp)
                             )
                             Text(label, modifier = Modifier.weight(1f))
                             Switch(
@@ -219,7 +220,7 @@ fun BubbleSettingsCard(
                     Icon(
                         Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp).padding(end = 12.dp)
+                        modifier = Modifier.requiredSize(32.dp).padding(end = 8.dp)
                     )
                     Text("Show app volume list", modifier = Modifier.weight(1f))
                     Switch(
