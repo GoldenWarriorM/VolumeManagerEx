@@ -246,7 +246,7 @@ class Service : AccessibilityService() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(if (shadowEnabled) 14.dp else 0.dp),
+                            .padding(14.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Surface(
@@ -405,9 +405,6 @@ class Service : AccessibilityService() {
         val width = resources.displayMetrics.widthPixels
         val height = resources.displayMetrics.heightPixels
         val isLandscape = width > height
-        val innerPaddingPx = if (preferences.shadowEnabled) {
-            (resources.displayMetrics.density * 14f).roundToInt()
-        } else 0
         val layout = calculateBubbleLayout(
             widthPx = width,
             heightPx = height,
@@ -416,15 +413,14 @@ class Service : AccessibilityService() {
             horizontal = if (isLandscape) preferences.horizontalLandscape else preferences.horizontal,
             vertical = if (isLandscape) preferences.verticalLandscape else preferences.vertical
         )
-        val windowSize = layout.sizePx + innerPaddingPx * 2
+        val paddingPx = (resources.displayMetrics.density * 14f).roundToInt()
+        val windowSize = layout.sizePx + paddingPx * 2
         bubbleLayoutParams.width = windowSize
         bubbleLayoutParams.height = windowSize
         bubbleLayoutParams.x =
-            (layout.xPx - innerPaddingPx)
-                .coerceIn(-innerPaddingPx, width - windowSize + innerPaddingPx)
+            (layout.xPx - paddingPx).coerceIn(-paddingPx, width - windowSize + paddingPx)
         bubbleLayoutParams.y =
-            (layout.yPx - innerPaddingPx)
-                .coerceIn(-innerPaddingPx, height - windowSize + innerPaddingPx)
+            (layout.yPx - paddingPx).coerceIn(-paddingPx, height - windowSize + paddingPx)
 
         val target = bubbleView
         if (target != null) {
