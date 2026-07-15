@@ -246,7 +246,7 @@ class Service : AccessibilityService() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 8.dp, vertical = 14.dp),
+                            .padding(horizontal = 8.dp, vertical = 18.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Surface(
@@ -414,7 +414,7 @@ class Service : AccessibilityService() {
             vertical = if (isLandscape) preferences.verticalLandscape else preferences.vertical
         )
         val hPaddingPx = (resources.displayMetrics.density * 8f).roundToInt()
-        val vPaddingPx = (resources.displayMetrics.density * 14f).roundToInt()
+        val vPaddingPx = (resources.displayMetrics.density * 18f).roundToInt()
         val windowW = layout.sizePx + hPaddingPx * 2
         val windowH = layout.sizePx + vPaddingPx * 2
         bubbleLayoutParams.width = windowW
