@@ -5,13 +5,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -166,6 +171,11 @@ fun BubbleSettingsCard(
                 Text("Overlay Panel", style = MaterialTheme.typography.titleLarge)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp).padding(end = 8.dp)
+                    )
                     Text("Show system volume sliders", modifier = Modifier.weight(1f))
                     Switch(
                         checked = systemVolumeEnabled,
@@ -189,6 +199,11 @@ fun BubbleSettingsCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.List,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp).padding(end = 8.dp)
+                    )
                     Text("Show app volume list", modifier = Modifier.weight(1f))
                     Switch(
                         checked = appVolumeListEnabled,
