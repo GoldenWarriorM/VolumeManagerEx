@@ -283,4 +283,11 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         _bubblePreferences = next
         appPreferencesStore.setBubble(next)
     }
+
+    fun setVolumePanelOverlayEnabled(enabled: Boolean) {
+        val next = _bubblePreferences.copy(volumePanelOverlayEnabled = enabled)
+        if (next == _bubblePreferences) return
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
 }

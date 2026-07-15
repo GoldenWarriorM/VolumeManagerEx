@@ -492,6 +492,7 @@ class MainActivity : ComponentActivity() {
                                                 animationStyle = bubblePreferences.animationStyle,
                                                 systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
                                                 appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
+                                                volumePanelOverlayEnabled = bubblePreferences.volumePanelOverlayEnabled,
                                                 systemSliderVisibility = manager.systemSliderVisibility,
                                                 onBubbleEnabledChange = {
                                                     manager.setBubbleEnabled(it)
@@ -540,6 +541,9 @@ class MainActivity : ComponentActivity() {
                                                 },
                                                 onAppVolumeListEnabledChange = {
                                                     manager.setAppVolumeListEnabled(it)
+                                                },
+                                                onVolumePanelOverlayEnabledChange = {
+                                                    manager.setVolumePanelOverlayEnabled(it)
                                                 },
                                                 onSliderVisibilityChange = { id, visible ->
                                                     manager.setSystemSliderVisible(id, visible)

@@ -22,7 +22,8 @@ data class BubblePreferences(
     var closeDelayMs: Long = 3150L,
     var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default,
     var systemVolumeEnabled: Boolean = true,
-    var appVolumeListEnabled: Boolean = true
+    var appVolumeListEnabled: Boolean = true,
+    var volumePanelOverlayEnabled: Boolean = false
 )
 
 @Serializable
