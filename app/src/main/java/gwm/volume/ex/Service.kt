@@ -681,7 +681,7 @@ class Service : AccessibilityService() {
                         hideBubble()
                     }
                 }
-                VOLUME_CHANGED_ACTION -> if (bubbleVisible) startBubbleIdleTimer()
+                VOLUME_CHANGED_ACTION -> Unit
             }
         }
     }
