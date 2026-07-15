@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -42,6 +43,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import gwm.volume.ex.data.App
+
+private val RECOMMENDED_PACKAGES = setOf("android", "com.android.systemui")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,18 +78,28 @@ fun HiddenAppsContent(
                     }
                 )
 
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 8.dp),
-                    placeholder = { Text("Search apps...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    singleLine = true,
                     shape = RoundedCornerShape(12.dp)
-                )
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Search apps...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -100,6 +113,30 @@ fun HiddenAppsContent(
             ),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            val recommended = apps
+                .filter { it.packageName in RECOMMENDED_PACKAGES && !it.hidden }
+
+            if (recommended.isNotEmpty() && query.isEmpty()) {
+                item(key = "recommended_header") {
+                    Text(
+                        text = "Recommended",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(vertical = 8.dp)
+                    )
+                }
+
+                items(
+                    items = recommended,
+                    key = { it.packageName.let { "recommended_$it" } }
+                ) { app ->
+                    RecommendedCard(app) { app.hidden = true }
+                }
+            }
+
             if (filteredHidden.isNotEmpty()) {
                 item(key = "hidden_header") {
                     Text(
@@ -145,6 +182,69 @@ fun HiddenAppsContent(
                     app = app,
                     isHidden = false,
                     onToggle = { app.hidden = true }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecommendedCard(
+    app: App,
+    onHide: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (app.icon != null) {
+                Image(
+                    bitmap = app.icon!!,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .padding(2.dp),
+                    contentScale = ContentScale.FillWidth
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .padding(2.dp)
+                        .background(Color.Gray, RoundedCornerShape(8.dp))
+                )
+            }
+
+            Text(
+                text = app.name,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Text(
+                text = "Recommended",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+
+            IconButton(onClick = onHide) {
+                Icon(
+                    imageVector = Icons.Default.VisibilityOff,
+                    contentDescription = "Hide app",
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
         }
