@@ -13,11 +13,11 @@ data class AppPreferences(
 @Serializable
 data class BubblePreferences(
     var enabled: Boolean = true,
-    var sizeScale: Float = 1.0f,
-    var horizontal: Float = 0.90f,
-    var vertical: Float = 0.50f,
-    var horizontalLandscape: Float = 0.50f,
-    var verticalLandscape: Float = 0.50f,
+    var sizeScale: Float = 1.2f,
+    var horizontal: Float = 0.97f,
+    var vertical: Float = 0.77f,
+    var horizontalLandscape: Float = 1.0f,
+    var verticalLandscape: Float = 0.99f,
     var shadowEnabled: Boolean = true,
     var closeDelayMs: Long = 3000L,
     var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default,
