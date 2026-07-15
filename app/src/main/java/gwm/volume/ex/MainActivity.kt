@@ -303,7 +303,7 @@ class MainActivity : ComponentActivity() {
                             title = {
                                 Text(
                                     if (currentPage == Page.BubbleSettings) {
-                                        "Bubble settings"
+                                        "Settings"
                                     } else {
                                         stringResource(R.string.app_name)
                                     }
@@ -325,13 +325,13 @@ class MainActivity : ComponentActivity() {
                                         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
                                             TooltipAnchorPosition.Below, 12.dp
                                         ),
-                                        tooltip = { PlainTooltip { Text("Bubble settings") } },
+                                        tooltip = { PlainTooltip { Text("Settings") } },
                                         state = rememberTooltipState()
                                     ) {
                                         IconButton(onClick = { currentPage = Page.BubbleSettings }) {
                                             Icon(
                                                 Icons.Default.Settings,
-                                                contentDescription = "Bubble settings"
+                                                contentDescription = "Settings"
                                             )
                                         }
                                     }

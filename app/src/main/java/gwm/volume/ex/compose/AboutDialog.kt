@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import gwm.volume.ex.BuildConfig
@@ -57,7 +58,7 @@ fun AboutDialog(
                             onClick = {
                                 val clipboard = context.getSystemService(ClipboardManager::class.java)
                                 val clip =
-                                    ClipData.newPlainText("VolumeManager", BuildConfig.VERSION_NAME)
+                                    ClipData.newPlainText("VolumeManagerEx", BuildConfig.VERSION_NAME)
                                 clipboard.setPrimaryClip(clip)
                                 Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
                             },
@@ -66,11 +67,47 @@ fun AboutDialog(
                             Text("Copy")
                         }
                     }
+
                     Text(
-                        text = stringResource(R.string.about_author, "yume-chan"),
+                        text = "Author: gwm",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+
+                    Text(
+                        text = "Fork of VolumeManagerPlus by DDOneApps, originally VolumeManager by yume-chan",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TextButton(
+                            onClick = {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://github.com/DDOneApps/VolumeManagerPlus".toUri()
+                                )
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            }
+                        ) {
+                            Text("DDOneApps/VolumeManagerPlus", style = MaterialTheme.typography.labelSmall)
+                        }
+                        TextButton(
+                            onClick = {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://github.com/yume-chan/VolumeManager".toUri()
+                                )
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            }
+                        ) {
+                            Text("yume-chan/VolumeManager", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -79,14 +116,14 @@ fun AboutDialog(
                         onClick = {
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
-                                "https://github.com/yume-chan/VolumeManager".toUri()
+                                "https://github.com/GoldenWarriorM/VolumeManagerEx".toUri()
                             )
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             context.startActivity(intent)
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = stringResource(R.string.about_github))
+                        Text(text = "View on GitHub")
                     }
                     TextButton(
                         onClick = onDismiss,
