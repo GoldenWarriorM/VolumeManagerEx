@@ -171,8 +171,8 @@ fun SafeZonesScreen(
                                 val event = awaitPointerEvent()
                                 val c = event.changes.firstOrNull { it.id == down.id } ?: break
                                 if (!c.pressed) break
-                                val nx = (c.position.x / cw).coerceIn(0f, 1f)
-                                val ny = (c.position.y / ch).coerceIn(0f, 1f)
+                                val nx = (c.position.x / cw).coerceIn(mnX, 1f - mnX)
+                                val ny = (c.position.y / ch).coerceIn(mnY, 1f - mnY)
                                 val dx = nx - lastXPct
                                 val dy = ny - lastYPct
                                 if (dx != 0f || dy != 0f) dragged = true
