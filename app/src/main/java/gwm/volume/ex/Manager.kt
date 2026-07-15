@@ -73,7 +73,7 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
 
     private val _excludedPackages = mutableStateOf<Set<String>>(emptySet())
     val excludedPackages: Set<String>
-        get() = _excludedPackages
+        get() = _excludedPackages.value
 
     fun isPackageExcluded(packageName: String): Boolean {
         return packageName in _excludedPackages.value
