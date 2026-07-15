@@ -78,7 +78,7 @@ import gwm.volume.ex.compose.AboutDialog
 import gwm.volume.ex.compose.AppVolumeList
 import gwm.volume.ex.compose.BubbleSettingsCard
 import gwm.volume.ex.compose.CrashReportDialog
-import gwm.volume.ex.compose.ExcludedAppsContent
+import gwm.volume.ex.compose.HiddenAppsContent
 import gwm.volume.ex.compose.SystemVolumePanel
 import gwm.volume.ex.compose.ToggleButton
 import gwm.volume.ex.ui.theme.VolumeManagerTheme
@@ -203,7 +203,7 @@ class MainActivity : ComponentActivity() {
             var showAll by remember { mutableStateOf(false) }
             var crashReport by remember { mutableStateOf<String?>(null) }
             var showAboutDialog by remember { mutableStateOf(false) }
-            var showExcludedAppsDialog by remember { mutableStateOf(false) }
+            var showHiddenAppsDialog by remember { mutableStateOf(false) }
             var currentPage by rememberSaveable { mutableStateOf(Page.Main) }
             var predictiveBackProgress by remember { mutableFloatStateOf(0f) }
 
@@ -282,23 +282,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            if (showExcludedAppsDialog) {
+            if (showHiddenAppsDialog) {
                 Dialog(
-                    onDismissRequest = { showExcludedAppsDialog = false },
+                    onDismissRequest = { showHiddenAppsDialog = false },
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
                     VolumeManagerTheme {
-                        ExcludedAppsContent(
+                        HiddenAppsContent(
                             apps = manager.apps.values,
-                            excludedPackages = manager.excludedPackages,
-                            onExcludeChange = { pkg, excluded ->
-                                if (excluded) {
-                                    manager.addExcludedPackage(pkg)
-                                } else {
-                                    manager.removeExcludedPackage(pkg)
-                                }
-                            },
-                            onDismiss = { showExcludedAppsDialog = false }
+                            onDismiss = { showHiddenAppsDialog = false }
                         )
                     }
                 }
@@ -503,7 +495,6 @@ class MainActivity : ComponentActivity() {
                                                 systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
                                                 appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
                                                 systemSliderVisibility = manager.systemSliderVisibility,
-                                                excludedPackagesCount = manager.excludedPackages.size,
                                                 onSizeScaleChange = {
                                                     manager.setBubbleSizeScale(it)
                                                     notifyBubbleSettingsChanged()
@@ -535,8 +526,8 @@ class MainActivity : ComponentActivity() {
                                                 onSliderVisibilityChange = { id, visible ->
                                                     manager.setSystemSliderVisible(id, visible)
                                                 },
-                                                onOpenExcludedApps = {
-                                                    showExcludedAppsDialog = true
+                                                onOpenHiddenApps = {
+                                                    showHiddenAppsDialog = true
                                                 }
                                             )
                                         }
@@ -547,14 +538,6 @@ class MainActivity : ComponentActivity() {
                                             apps = manager.apps.values,
                                             showEmpty = true,
                                             showAll = showAll,
-                                            isExcluded = manager::isPackageExcluded,
-                                            onExcludeChange = { pkg, excluded ->
-                                                if (excluded) {
-                                                    manager.addExcludedPackage(pkg)
-                                                } else {
-                                                    manager.removeExcludedPackage(pkg)
-                                                }
-                                            },
                                             onShowAll = { showAll = true },
                                             content = {
                                                 item("system_volume_panel_main") {

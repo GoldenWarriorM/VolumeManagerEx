@@ -16,10 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,38 +43,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import gwm.volume.ex.data.App
 
-private val RECOMMENDED_PACKAGES = setOf("android", "com.android.systemui")
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExcludedAppsContent(
+fun HiddenAppsContent(
     apps: Collection<App>,
-    excludedPackages: Set<String>,
-    onExcludeChange: (String, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
     val query = searchQuery.lowercase().trim()
 
-    val filteredExcluded = apps
-        .filter { it.packageName in excludedPackages }
+    val filteredHidden = apps
+        .filter { it.hidden }
         .filter { query.isEmpty() || it.name.lowercase().contains(query) || it.packageName.lowercase().contains(query) }
         .sortedWith(App.comparator)
 
-    val filteredNonExcluded = apps
-        .filter { it.packageName !in excludedPackages }
+    val filteredVisible = apps
+        .filter { !it.hidden }
         .filter { query.isEmpty() || it.name.lowercase().contains(query) || it.packageName.lowercase().contains(query) }
         .sortedWith(App.comparator)
-
-    val recommended = apps
-        .filter { it.packageName in RECOMMENDED_PACKAGES && it.packageName !in excludedPackages }
 
     Scaffold(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text("Excluded Apps") },
+                    title = { Text("Hidden Apps") },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
@@ -107,34 +100,10 @@ fun ExcludedAppsContent(
             ),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            if (recommended.isNotEmpty() && query.isEmpty()) {
-                item(key = "recommended_header") {
+            if (filteredHidden.isNotEmpty()) {
+                item(key = "hidden_header") {
                     Text(
-                        text = "Recommended",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(vertical = 8.dp)
-                    )
-                }
-
-                items(
-                    items = recommended,
-                    key = { it.packageName.let { "recommended_$it" } }
-                ) { app ->
-                    RecommendedCard(
-                        app = app,
-                        onAdd = { onExcludeChange(app.packageName, true) }
-                    )
-                }
-            }
-
-            if (filteredExcluded.isNotEmpty()) {
-                item(key = "excluded_header") {
-                    Text(
-                        text = "Excluded (${filteredExcluded.size})",
+                        text = "Hidden (${filteredHidden.size})",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
@@ -145,20 +114,20 @@ fun ExcludedAppsContent(
                 }
 
                 items(
-                    items = filteredExcluded,
-                    key = { it.packageName.let { "excluded_$it" } }
+                    items = filteredHidden,
+                    key = { it.packageName.let { "hidden_$it" } }
                 ) { app ->
-                    ExcludedAppCard(
+                    HiddenAppCard(
                         app = app,
-                        isExcluded = true,
-                        onToggle = { onExcludeChange(app.packageName, false) }
+                        isHidden = true,
+                        onToggle = { app.hidden = false }
                     )
                 }
             }
 
-            item(key = "all_apps_header") {
+            item(key = "visible_header") {
                 Text(
-                    text = "All Apps (${filteredNonExcluded.size})",
+                    text = "Visible (${filteredVisible.size})",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
@@ -169,13 +138,13 @@ fun ExcludedAppsContent(
             }
 
             items(
-                items = filteredNonExcluded,
-                key = { it.packageName.let { "all_$it" } }
+                items = filteredVisible,
+                key = { it.packageName.let { "visible_$it" } }
             ) { app ->
-                ExcludedAppCard(
+                HiddenAppCard(
                     app = app,
-                    isExcluded = false,
-                    onToggle = { onExcludeChange(app.packageName, true) }
+                    isHidden = false,
+                    onToggle = { app.hidden = true }
                 )
             }
         }
@@ -183,76 +152,13 @@ fun ExcludedAppsContent(
 }
 
 @Composable
-private fun RecommendedCard(
+private fun HiddenAppCard(
     app: App,
-    onAdd: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (app.icon != null) {
-                Image(
-                    bitmap = app.icon!!,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .padding(2.dp),
-                    contentScale = ContentScale.FillWidth
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .padding(2.dp)
-                        .background(Color.Gray, RoundedCornerShape(8.dp))
-                )
-            }
-
-            Text(
-                text = app.name,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            Text(
-                text = "Recommended",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-
-            IconButton(onClick = onAdd) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add to exclusions",
-                    tint = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExcludedAppCard(
-    app: App,
-    isExcluded: Boolean,
+    isHidden: Boolean,
     onToggle: () -> Unit
 ) {
     val cardColor by animateColorAsState(
-        targetValue = if (isExcluded) {
+        targetValue = if (isHidden) {
             MaterialTheme.colorScheme.errorContainer
         } else {
             MaterialTheme.colorScheme.surfaceVariant
@@ -300,9 +206,9 @@ private fun ExcludedAppCard(
 
             IconButton(onClick = onToggle) {
                 Icon(
-                    imageVector = if (isExcluded) Icons.Default.RemoveCircle else Icons.Default.Close,
-                    contentDescription = if (isExcluded) "Remove from exclusions" else "Exclude from overlay",
-                    tint = if (isExcluded) {
+                    imageVector = if (isHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = if (isHidden) "Unhide app" else "Hide app",
+                    tint = if (isHidden) {
                         MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.onSurface

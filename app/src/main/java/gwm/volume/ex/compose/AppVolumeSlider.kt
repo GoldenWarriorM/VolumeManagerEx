@@ -7,12 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +17,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import gwm.volume.ex.data.App
-import gwm.volume.ex.icons.Hook
-import gwm.volume.ex.icons.HookOff
 import gwm.volume.ex.ui.theme.Typography
 import kotlin.math.roundToInt
 
@@ -32,10 +24,6 @@ import kotlin.math.roundToInt
 @Composable
 fun AppVolumeSlider(
     app: App,
-    showOptions: Boolean,
-    enableHide: Boolean = true,
-    isExcluded: Boolean = false,
-    onExcludeChange: ((Boolean) -> Unit)? = null,
     onChange: (() -> Unit)? = null
 ) {
     Row(
@@ -82,42 +70,6 @@ fun AppVolumeSlider(
                     style = Typography.bodySmall,
                     maxLines = 1,
                 )
-            }
-        }
-
-        if (showOptions) {
-            if (enableHide) {
-                ToggleButton(
-                    checked = app.hidden,
-                    checkedIcon = Icons.Default.VisibilityOff,
-                    checkedDescription = "Unhide app",
-                    uncheckedIcon = Icons.Default.Visibility,
-                    uncheckedDescription = "Hide app"
-                ) {
-                    app.hidden = it
-                }
-            }
-
-            ToggleButton(
-                checked = app.disableVolumeButtons,
-                checkedIcon = HookOff,
-                checkedDescription = "Enable volume buttons",
-                uncheckedIcon = Hook,
-                uncheckedDescription = "Disable volume buttons"
-            ) {
-                app.disableVolumeButtons = it
-            }
-
-            if (onExcludeChange != null) {
-                ToggleButton(
-                    checked = isExcluded,
-                    checkedIcon = Icons.Default.Close,
-                    checkedDescription = "Include in overlay",
-                    uncheckedIcon = Icons.Default.Close,
-                    uncheckedDescription = "Exclude from overlay"
-                ) {
-                    onExcludeChange(it)
-                }
             }
         }
     }

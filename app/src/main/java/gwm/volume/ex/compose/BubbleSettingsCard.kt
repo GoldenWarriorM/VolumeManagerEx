@@ -44,7 +44,6 @@ fun BubbleSettingsCard(
     systemVolumeEnabled: Boolean,
     appVolumeListEnabled: Boolean,
     systemSliderVisibility: Map<String, Boolean>,
-    excludedPackagesCount: Int,
     onSizeScaleChange: (Float) -> Unit,
     onPositionChange: (Float, Float) -> Unit,
     onShadowEnabledChange: (Boolean) -> Unit,
@@ -53,7 +52,7 @@ fun BubbleSettingsCard(
     onSystemVolumeEnabledChange: (Boolean) -> Unit,
     onAppVolumeListEnabledChange: (Boolean) -> Unit,
     onSliderVisibilityChange: (String, Boolean) -> Unit,
-    onOpenExcludedApps: () -> Unit
+    onOpenHiddenApps: () -> Unit
 ) {
     val animationOptions = listOf(
         BubbleAnimationStyle.Default to "Default",
@@ -208,15 +207,15 @@ fun BubbleSettingsCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Excluded Apps ($excludedPackagesCount)",
+                        text = "Hidden Apps",
                         modifier = Modifier.weight(1f)
                     )
-                    Button(onClick = onOpenExcludedApps) {
+                    Button(onClick = onOpenHiddenApps) {
                         Text("Manage")
                     }
                 }
                 Text(
-                    text = "Excluded apps are hidden from the overlay volume list.",
+                    text = "Hidden apps are hidden from the overlay volume list.",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

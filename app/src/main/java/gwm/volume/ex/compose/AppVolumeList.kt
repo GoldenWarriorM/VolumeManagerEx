@@ -35,16 +35,12 @@ import gwm.volume.ex.data.App
 internal data class Group(
     val name: String,
     val apps: List<App>,
-    val startIndex: Int,
-    val enableHide: Boolean
+    val startIndex: Int
 )
 
 fun LazyListScope.group(
     header: @Composable () -> String,
     apps: List<App>,
-    enableHide: Boolean = true,
-    isExcluded: (String) -> Boolean = { false },
-    onExcludeChange: ((String, Boolean) -> Unit)? = null,
     onChange: (() -> Unit)? = null,
     onHeaderClick: (() -> Unit)? = null
 ) {
@@ -70,12 +66,7 @@ fun LazyListScope.group(
 
         items(
             items = apps.sortedWith(App.comparator), key = { app -> app.packageName }) { app ->
-            AppVolumeSlider(
-                app, true, enableHide,
-                isExcluded = isExcluded(app.packageName),
-                onExcludeChange = onExcludeChange?.let { { it(app.packageName, it) } },
-                onChange = onChange
-            )
+            AppVolumeSlider(app, onChange)
         }
     }
 }
@@ -87,8 +78,6 @@ fun AppVolumeList(
     apps: MutableCollection<App>,
     showEmpty: Boolean = false,
     showAll: Boolean,
-    isExcluded: (String) -> Boolean = { false },
-    onExcludeChange: ((String, Boolean) -> Unit)? = null,
     onChange: (() -> Unit)? = null,
     onShowAll: (() -> Unit)? = null,
     content: (LazyListScope.() -> Unit)? = null
@@ -125,17 +114,17 @@ fun AppVolumeList(
 
     val groups = buildList<Group> {
         var currentIndex = 0
-        val addGroup = { name: String, appsList: List<App>, enableHide: Boolean ->
+        val addGroup = { name: String, appsList: List<App> ->
             if (appsList.isNotEmpty()) {
-                add(Group(name, appsList, currentIndex, enableHide))
+                add(Group(name, appsList, currentIndex))
                 currentIndex += 1 + appsList.size
             }
         }
-        addGroup(stringResource(R.string.group_active), activePlayers, true)
-        addGroup(stringResource(R.string.group_inactive), inactivePlayers, true)
-        addGroup(stringResource(R.string.group_hidden), hiddenPlayers, true)
-        addGroup(stringResource(R.string.group_other), otherAppsWithActivities, false)
-        addGroup(stringResource(R.string.group_system), otherAppsWithoutActivities, false)
+        addGroup(stringResource(R.string.group_active), activePlayers)
+        addGroup(stringResource(R.string.group_inactive), inactivePlayers)
+        addGroup(stringResource(R.string.group_hidden), hiddenPlayers)
+        addGroup(stringResource(R.string.group_other), otherAppsWithActivities)
+        addGroup(stringResource(R.string.group_system), otherAppsWithoutActivities)
     }
 
     LaunchedEffect(showAll) {
@@ -157,7 +146,7 @@ fun AppVolumeList(
         if (!showAll) {
             if (activePlayers.isNotEmpty()) {
                 items(items = activePlayers, key = { app -> app.packageName }) { app ->
-                    AppVolumeSlider(app, showOptions = false, onChange = onChange)
+                    AppVolumeSlider(app, onChange)
                 }
             } else if (showEmpty) {
                 item {
@@ -182,7 +171,7 @@ fun AppVolumeList(
         }
 
         groups.forEach { group ->
-            group({ group.name }, group.apps, enableHide = group.enableHide, isExcluded = isExcluded, onExcludeChange = onExcludeChange, onChange = onChange, onHeaderClick = { selectedGroup = group.name })
+            group({ group.name }, group.apps, onChange = onChange, onHeaderClick = { selectedGroup = group.name })
         }
     }
 

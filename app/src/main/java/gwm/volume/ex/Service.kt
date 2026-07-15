@@ -211,7 +211,7 @@ class Service : AccessibilityService() {
                             if (prefs.appVolumeListEnabled) {
                                 AppVolumeList(
                                     apps = manager.apps.values.filter {
-                                        it.packageName !in manager.excludedPackages
+                                        !it.hidden
                                     }.toMutableList(),
                                     showAll = false,
                                     onChange = ::startOverlayIdleTimer

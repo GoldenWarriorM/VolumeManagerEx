@@ -25,7 +25,6 @@ class AppPreferencesStore(private val dataStore: DataStore<Preferences>) {
         val indices: MutableMap<String, Int>,
         val bubble: BubblePreferences = BubblePreferences(),
         val systemSliderVisibility: MutableMap<String, Boolean> = mutableMapOf(),
-        val excludedPackages: Set<String> = setOf("android", "com.android.systemui")
     )
 
     private val lock = Any()
@@ -115,18 +114,6 @@ class AppPreferencesStore(private val dataStore: DataStore<Preferences>) {
                 preferences[key] = Json.encodeToString(state)
             }
         }
-    }
-
-    val excludedPackages: Set<String>
-        get() = synchronized(lock) { state.excludedPackages }
-
-    fun setExcludedPackages(value: Set<String>) {
-        val changed = synchronized(lock) {
-            if (state.excludedPackages == value) return@synchronized false
-            state = state.copy(excludedPackages = value)
-            true
-        }
-        if (changed) save()
     }
 
     fun setBubble(value: BubblePreferences) {
