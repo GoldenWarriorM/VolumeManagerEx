@@ -182,6 +182,8 @@ class Service : AccessibilityService() {
 
             @Composable
             override fun Content() {
+                val prefs = manager.bubblePreferences
+
                 VolumeManagerTheme {
                     Surface(
                         color = Color(1f, 1f, 1f, 0.3f),
@@ -191,23 +193,25 @@ class Service : AccessibilityService() {
                         Column(
                             modifier = Modifier.padding(20.dp, 16.dp)
                         ) {
-                            AppVolumeList(
-                                apps = manager.apps.values,
-                                showAll = false,
-                                onChange = ::startOverlayIdleTimer
-                            ) {
-                                item("system_volume_panel") {
-                                    SystemVolumePanel(
-                                        audioManager = manager.audioManager,
-                                        notificationManagerProxy = manager.notificationManagerProxy,
-                                        showCallVolumeAlways = false,
-                                        applyVisibilityFilter = true,
-                                        allowVisibilityConfig = false,
-                                        isSliderVisible = manager::isSystemSliderVisible,
-                                        onSliderVisibilityChange = manager::setSystemSliderVisible,
-                                        onChange = ::startOverlayIdleTimer
-                                    )
-                                }
+                            if (prefs.systemVolumeEnabled) {
+                                SystemVolumePanel(
+                                    audioManager = manager.audioManager,
+                                    notificationManagerProxy = manager.notificationManagerProxy,
+                                    showCallVolumeAlways = false,
+                                    applyVisibilityFilter = true,
+                                    allowVisibilityConfig = false,
+                                    isSliderVisible = manager::isSystemSliderVisible,
+                                    onSliderVisibilityChange = manager::setSystemSliderVisible,
+                                    onChange = ::startOverlayIdleTimer
+                                )
+                            }
+
+                            if (prefs.appVolumeListEnabled) {
+                                AppVolumeList(
+                                    apps = manager.apps.values,
+                                    showAll = false,
+                                    onChange = ::startOverlayIdleTimer
+                                )
                             }
                         }
                     }

@@ -40,11 +40,17 @@ fun BubbleSettingsCard(
     shadowEnabled: Boolean,
     closeDelayMs: Long,
     animationStyle: BubbleAnimationStyle,
+    systemVolumeEnabled: Boolean,
+    appVolumeListEnabled: Boolean,
+    systemSliderVisibility: Map<String, Boolean>,
     onSizeScaleChange: (Float) -> Unit,
     onPositionChange: (Float, Float) -> Unit,
     onShadowEnabledChange: (Boolean) -> Unit,
     onCloseDelayChange: (Long) -> Unit,
-    onAnimationStyleChange: (BubbleAnimationStyle) -> Unit
+    onAnimationStyleChange: (BubbleAnimationStyle) -> Unit,
+    onSystemVolumeEnabledChange: (Boolean) -> Unit,
+    onAppVolumeListEnabledChange: (Boolean) -> Unit,
+    onSliderVisibilityChange: (String, Boolean) -> Unit
 ) {
     val animationOptions = listOf(
         BubbleAnimationStyle.Default to "Default",
@@ -53,6 +59,14 @@ fun BubbleSettingsCard(
         BubbleAnimationStyle.Scale to "Scale",
         BubbleAnimationStyle.Fade to "Fade (other)",
         BubbleAnimationStyle.Rotate to "Rotate (other)"
+    )
+
+    val streamLabels = mapOf(
+        "call" to "Call",
+        "media" to "Media",
+        "ring" to "Ring",
+        "alarm" to "Alarm",
+        "notification" to "Notification"
     )
 
     Column(
@@ -137,6 +151,48 @@ fun BubbleSettingsCard(
                     range = 0f..1f,
                     onValueChange = { onPositionChange(horizontal, it) }
                 )
+            }
+        }
+
+        Card {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Overlay Panel", style = MaterialTheme.typography.titleLarge)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Show system volume sliders", modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = systemVolumeEnabled,
+                        onCheckedChange = onSystemVolumeEnabledChange
+                    )
+                }
+
+                if (systemVolumeEnabled) {
+                    for ((id, label) in streamLabels) {
+                        Row(
+                            modifier = Modifier.padding(start = 24.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(label, modifier = Modifier.weight(1f))
+                            Switch(
+                                checked = systemSliderVisibility[id] ?: true,
+                                onCheckedChange = { onSliderVisibilityChange(id, it) }
+                            )
+                        }
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Show app volume list", modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = appVolumeListEnabled,
+                        onCheckedChange = onAppVolumeListEnabledChange
+                    )
+                }
             }
         }
     }

@@ -249,4 +249,18 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         _bubblePreferences = next
         appPreferencesStore.setBubble(next)
     }
+
+    fun setSystemVolumeEnabled(enabled: Boolean) {
+        val next = _bubblePreferences.copy(systemVolumeEnabled = enabled)
+        if (next == _bubblePreferences) return
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
+
+    fun setAppVolumeListEnabled(enabled: Boolean) {
+        val next = _bubblePreferences.copy(appVolumeListEnabled = enabled)
+        if (next == _bubblePreferences) return
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
 }

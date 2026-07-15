@@ -17,7 +17,9 @@ data class BubblePreferences(
     var vertical: Float = 0.50f,
     var shadowEnabled: Boolean = true,
     var closeDelayMs: Long = 3000L,
-    var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default
+    var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default,
+    var systemVolumeEnabled: Boolean = true,
+    var appVolumeListEnabled: Boolean = true
 )
 
 @Serializable

@@ -476,6 +476,9 @@ class MainActivity : ComponentActivity() {
                                                 shadowEnabled = bubblePreferences.shadowEnabled,
                                                 closeDelayMs = bubblePreferences.closeDelayMs,
                                                 animationStyle = bubblePreferences.animationStyle,
+                                                systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
+                                                appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
+                                                systemSliderVisibility = manager.systemSliderVisibility,
                                                 onSizeScaleChange = {
                                                     manager.setBubbleSizeScale(it)
                                                     notifyBubbleSettingsChanged()
@@ -495,6 +498,17 @@ class MainActivity : ComponentActivity() {
                                                 onAnimationStyleChange = {
                                                     manager.setBubbleAnimationStyle(it)
                                                     notifyBubbleSettingsChanged()
+                                                },
+                                                onSystemVolumeEnabledChange = {
+                                                    manager.setSystemVolumeEnabled(it)
+                                                    notifyBubbleSettingsChanged()
+                                                },
+                                                onAppVolumeListEnabledChange = {
+                                                    manager.setAppVolumeListEnabled(it)
+                                                    notifyBubbleSettingsChanged()
+                                                },
+                                                onSliderVisibilityChange = { id, visible ->
+                                                    manager.setSystemSliderVisible(id, visible)
                                                 }
                                             )
                                         }
