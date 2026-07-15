@@ -5,17 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.RemoveCircle
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -48,8 +40,7 @@ fun BubbleSettingsCard(
     systemVolumeEnabled: Boolean,
     appVolumeListEnabled: Boolean,
     systemSliderVisibility: Map<String, Boolean>,
-    excludedPackages: Set<String>,
-    excludedPackageLabels: Map<String, String>,
+    excludedPackagesCount: Int,
     onSizeScaleChange: (Float) -> Unit,
     onPositionChange: (Float, Float) -> Unit,
     onShadowEnabledChange: (Boolean) -> Unit,
@@ -58,7 +49,7 @@ fun BubbleSettingsCard(
     onSystemVolumeEnabledChange: (Boolean) -> Unit,
     onAppVolumeListEnabledChange: (Boolean) -> Unit,
     onSliderVisibilityChange: (String, Boolean) -> Unit,
-    onRemoveExcludedPackage: (String) -> Unit
+    onOpenExcludedApps: () -> Unit
 ) {
     val animationOptions = listOf(
         BubbleAnimationStyle.Default to "Default",
@@ -204,37 +195,26 @@ fun BubbleSettingsCard(
             }
         }
 
-        if (excludedPackages.isNotEmpty()) {
-            Card {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("Excluded Apps", style = MaterialTheme.typography.titleLarge)
+        Card {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "These apps are hidden from the overlay volume list.",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "Excluded Apps ($excludedPackagesCount)",
+                        modifier = Modifier.weight(1f)
                     )
-
-                    for (pkg in excludedPackages.sorted()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = excludedPackageLabels[pkg] ?: pkg,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { onRemoveExcludedPackage(pkg) }) {
-                                Icon(
-                                    imageVector = Icons.Default.RemoveCircle,
-                                    contentDescription = "Remove from exclusions"
-                                )
-                            }
-                        }
+                    Button(onClick = onOpenExcludedApps) {
+                        Text("Manage")
                     }
                 }
+                Text(
+                    text = "Excluded apps are hidden from the overlay volume list.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }

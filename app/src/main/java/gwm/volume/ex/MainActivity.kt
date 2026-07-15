@@ -78,6 +78,7 @@ import gwm.volume.ex.compose.AboutDialog
 import gwm.volume.ex.compose.AppVolumeList
 import gwm.volume.ex.compose.BubbleSettingsCard
 import gwm.volume.ex.compose.CrashReportDialog
+import gwm.volume.ex.compose.ExcludedAppsContent
 import gwm.volume.ex.compose.SystemVolumePanel
 import gwm.volume.ex.compose.ToggleButton
 import gwm.volume.ex.ui.theme.VolumeManagerTheme
@@ -202,6 +203,7 @@ class MainActivity : ComponentActivity() {
             var showAll by remember { mutableStateOf(false) }
             var crashReport by remember { mutableStateOf<String?>(null) }
             var showAboutDialog by remember { mutableStateOf(false) }
+            var showExcludedAppsDialog by remember { mutableStateOf(false) }
             var currentPage by rememberSaveable { mutableStateOf(Page.Main) }
             var predictiveBackProgress by remember { mutableFloatStateOf(0f) }
 
@@ -276,6 +278,28 @@ class MainActivity : ComponentActivity() {
                 ) {
                     VolumeManagerTheme {
                         AboutDialog(onDismiss = { showAboutDialog = false })
+                    }
+                }
+            }
+
+            if (showExcludedAppsDialog) {
+                Dialog(
+                    onDismissRequest = { showExcludedAppsDialog = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    VolumeManagerTheme {
+                        ExcludedAppsContent(
+                            apps = manager.apps.values,
+                            excludedPackages = manager.excludedPackages,
+                            onExcludeChange = { pkg, excluded ->
+                                if (excluded) {
+                                    manager.addExcludedPackage(pkg)
+                                } else {
+                                    manager.removeExcludedPackage(pkg)
+                                }
+                            },
+                            onDismiss = { showExcludedAppsDialog = false }
+                        )
                     }
                 }
             }
@@ -461,11 +485,6 @@ class MainActivity : ComponentActivity() {
                                 ) { page ->
                                     if (page == Page.BubbleSettings) {
                                         val bubblePreferences = manager.bubblePreferences
-                                        val excludedLabels = remember(bubblePreferences, manager.apps) {
-                                            manager.excludedPackages.associateWith { pkg ->
-                                                manager.apps[pkg]?.name ?: pkg
-                                            }
-                                        }
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -484,8 +503,7 @@ class MainActivity : ComponentActivity() {
                                                 systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
                                                 appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
                                                 systemSliderVisibility = manager.systemSliderVisibility,
-                                                excludedPackages = manager.excludedPackages,
-                                                excludedPackageLabels = excludedLabels,
+                                                excludedPackagesCount = manager.excludedPackages.size,
                                                 onSizeScaleChange = {
                                                     manager.setBubbleSizeScale(it)
                                                     notifyBubbleSettingsChanged()
@@ -517,8 +535,8 @@ class MainActivity : ComponentActivity() {
                                                 onSliderVisibilityChange = { id, visible ->
                                                     manager.setSystemSliderVisible(id, visible)
                                                 },
-                                                onRemoveExcludedPackage = {
-                                                    manager.removeExcludedPackage(it)
+                                                onOpenExcludedApps = {
+                                                    showExcludedAppsDialog = true
                                                 }
                                             )
                                         }
