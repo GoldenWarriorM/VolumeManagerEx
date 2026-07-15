@@ -57,7 +57,6 @@ fun BubbleSettingsCard(
     vertical: Float,
     horizontalLandscape: Float = 1.0f,
     verticalLandscape: Float = 0.99f,
-    shadowEnabled: Boolean,
     closeDelayMs: Long,
     animationStyle: BubbleAnimationStyle,
     systemVolumeEnabled: Boolean,
@@ -66,7 +65,6 @@ fun BubbleSettingsCard(
     onSizeScaleChange: (Float) -> Unit,
     onPositionChange: (Float, Float) -> Unit,
     onLandscapePositionChange: (Float, Float) -> Unit,
-    onShadowEnabledChange: (Boolean) -> Unit,
     onCloseDelayChange: (Long) -> Unit,
     onAnimationStyleChange: (BubbleAnimationStyle) -> Unit,
     onBubbleEnabledChange: (Boolean) -> Unit,
@@ -110,14 +108,6 @@ fun BubbleSettingsCard(
                     Switch(
                         checked = bubbleEnabled,
                         onCheckedChange = onBubbleEnabledChange
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Bubble shadow", modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = shadowEnabled,
-                        onCheckedChange = onShadowEnabledChange
                     )
                 }
 

@@ -487,7 +487,6 @@ class MainActivity : ComponentActivity() {
                                                 vertical = bubblePreferences.vertical,
                                                 horizontalLandscape = bubblePreferences.horizontalLandscape,
                                                 verticalLandscape = bubblePreferences.verticalLandscape,
-                                                shadowEnabled = bubblePreferences.shadowEnabled,
                                                 closeDelayMs = bubblePreferences.closeDelayMs,
                                                 animationStyle = bubblePreferences.animationStyle,
                                                 systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
@@ -513,12 +512,6 @@ class MainActivity : ComponentActivity() {
                                                 },
                                                 onLandscapePositionChange = { horizontal, vertical ->
                                                     manager.setBubbleLandscapePosition(horizontal, vertical)
-                                                    settingsModified = true
-                                                    setBubblePreviewMode(true)
-                                                    notifyBubbleSettingsChanged()
-                                                },
-                                                onShadowEnabledChange = {
-                                                    manager.setBubbleShadowEnabled(it)
                                                     settingsModified = true
                                                     setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()

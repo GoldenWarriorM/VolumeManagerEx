@@ -18,7 +18,7 @@ data class BubblePreferences(
     var vertical: Float = 0.77f,
     var horizontalLandscape: Float = 1.0f,
     var verticalLandscape: Float = 0.99f,
-    var shadowEnabled: Boolean = true,
+    var shadowEnabled: Boolean = false,
     var closeDelayMs: Long = 3150L,
     var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default,
     var systemVolumeEnabled: Boolean = true,
