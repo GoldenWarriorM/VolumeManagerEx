@@ -1,5 +1,6 @@
 package gwm.volume.ex.compose
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -215,8 +216,9 @@ fun BubbleSettingsCard(
                     "notification" to Icons.Default.NotificationsNone
                 )
 
-                if (systemVolumeEnabled) {
-                    for ((id, label) in streamLabels) {
+                AnimatedVisibility(visible = systemVolumeEnabled) {
+                    Column {
+                        for ((id, label) in streamLabels) {
                         Row(
                             modifier = Modifier.padding(start = 32.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -232,6 +234,7 @@ fun BubbleSettingsCard(
                                 onCheckedChange = { onSliderVisibilityChange(id, it) }
                             )
                         }
+                    }
                     }
                 }
 
