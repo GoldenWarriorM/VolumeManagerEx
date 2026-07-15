@@ -407,6 +407,7 @@ class Service : AccessibilityService() {
         val preferences = manager.bubblePreferences
         val width = resources.displayMetrics.widthPixels
         val height = resources.displayMetrics.heightPixels
+        val isLandscape = width > height
         val shadowPaddingPx = if (preferences.shadowEnabled) {
             (resources.displayMetrics.density * BUBBLE_SHADOW_PADDING_DP).roundToInt()
         } else {
@@ -417,8 +418,8 @@ class Service : AccessibilityService() {
             heightPx = height,
             density = resources.displayMetrics.density,
             sizeScale = preferences.sizeScale,
-            horizontal = preferences.horizontal,
-            vertical = preferences.vertical
+            horizontal = if (isLandscape) preferences.horizontalLandscape else preferences.horizontal,
+            vertical = if (isLandscape) preferences.verticalLandscape else preferences.vertical
         )
         val windowWidth = layout.sizePx + shadowPaddingPx * 2
         val windowHeight = layout.sizePx + shadowPaddingPx * 2

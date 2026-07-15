@@ -50,6 +50,8 @@ fun BubbleSettingsCard(
     sizeScale: Float,
     horizontal: Float,
     vertical: Float,
+    horizontalLandscape: Float = 0.5f,
+    verticalLandscape: Float = 0.5f,
     shadowEnabled: Boolean,
     closeDelayMs: Long,
     animationStyle: BubbleAnimationStyle,
@@ -58,6 +60,7 @@ fun BubbleSettingsCard(
     systemSliderVisibility: Map<String, Boolean>,
     onSizeScaleChange: (Float) -> Unit,
     onPositionChange: (Float, Float) -> Unit,
+    onLandscapePositionChange: (Float, Float) -> Unit,
     onShadowEnabledChange: (Boolean) -> Unit,
     onCloseDelayChange: (Long) -> Unit,
     onAnimationStyleChange: (BubbleAnimationStyle) -> Unit,
@@ -162,6 +165,20 @@ fun BubbleSettingsCard(
                     value = vertical,
                     range = 0f..1f,
                     onValueChange = { onPositionChange(horizontal, it) }
+                )
+
+                Text("Landscape position", style = MaterialTheme.typography.titleMedium)
+                NumericPercentSetting(
+                    title = "Horizontal",
+                    value = horizontalLandscape,
+                    range = 0f..1f,
+                    onValueChange = { onLandscapePositionChange(it, verticalLandscape) }
+                )
+                NumericPercentSetting(
+                    title = "Vertical",
+                    value = verticalLandscape,
+                    range = 0f..1f,
+                    onValueChange = { onLandscapePositionChange(horizontalLandscape, it) }
                 )
             }
         }

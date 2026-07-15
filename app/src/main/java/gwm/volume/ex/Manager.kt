@@ -220,6 +220,19 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         appPreferencesStore.setBubble(next)
     }
 
+    fun setBubbleLandscapePosition(horizontal: Float, vertical: Float) {
+        val next = _bubblePreferences.copy(
+            horizontalLandscape = horizontal.coerceIn(0f, 1f),
+            verticalLandscape = vertical.coerceIn(0f, 1f)
+        )
+        if (next == _bubblePreferences) {
+            return
+        }
+
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
+
     fun setBubbleShadowEnabled(enabled: Boolean) {
         val next = _bubblePreferences.copy(shadowEnabled = enabled)
         if (next == _bubblePreferences) {
