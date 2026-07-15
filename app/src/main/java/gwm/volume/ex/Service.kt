@@ -92,7 +92,6 @@ class Service : AccessibilityService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val hideOverlayRunnable = Runnable { hideOverlay() }
     private val hideBubbleRunnable = Runnable { hideBubble() }
-    private var volumePanelBounds: Rect? = null
 
     private var overlayView: View? = null
     private var overlayVisible = false
@@ -463,16 +462,32 @@ class Service : AccessibilityService() {
             Log.i(TAG, "volumePanelOverlay: trying to snap to volume panel")
             val panelBounds = getVolumePanelBounds()
             if (panelBounds != null) {
-                snapToVolumePanel(panelBounds)
+                Log.i(TAG, "volumePanelOverlay: panel found at ${panelBounds.flattenToString()}")
+                val shadowPaddingPx = if (manager.bubblePreferences.shadowEnabled) {
+                    (resources.displayMetrics.density * BUBBLE_SHADOW_PADDING_DP).roundToInt()
+                } else 0
+                val windowWidth = panelBounds.width() + shadowPaddingPx * 2
+                val windowHeight = panelBounds.height() + shadowPaddingPx * 2
+                bubbleLayoutParams.width = windowWidth
+                bubbleLayoutParams.height = windowHeight
+                bubbleLayoutParams.x = panelBounds.left - shadowPaddingPx
+                bubbleLayoutParams.y = panelBounds.top - shadowPaddingPx
+
+                if (bubbleView == null) {
+                    bubbleView = createBubbleView()
+                    windowManager.addView(bubbleView, bubbleLayoutParams)
+                } else {
+                    windowManager.updateViewLayout(bubbleView, bubbleLayoutParams)
+                }
+
+                if (!bubbleVisible) {
+                    bubbleVisible = true
+                    animateBubbleIn(bubbleView!!)
+                }
+                startBubbleIdleTimer()
                 return
             }
-            // show at normal position first, then try to snap when panel appears
-            mainHandler.postDelayed({
-                val bounds = volumePanelBounds
-                if (bounds != null) {
-                    snapToVolumePanel(bounds)
-                }
-            }, 250L)
+            Log.w(TAG, "volumePanelOverlay: panel bounds null, falling back to normal mode")
         }
 
         updateBubbleLayout()
@@ -487,32 +502,6 @@ class Service : AccessibilityService() {
             animateBubbleIn(bubbleView!!)
         }
 
-        startBubbleIdleTimer()
-    }
-
-    private fun snapToVolumePanel(bounds: Rect) {
-        Log.i(TAG, "snapToVolumePanel: snapping to ${bounds.flattenToString()}")
-        val shadowPaddingPx = if (manager.bubblePreferences.shadowEnabled) {
-            (resources.displayMetrics.density * BUBBLE_SHADOW_PADDING_DP).roundToInt()
-        } else 0
-        val windowWidth = bounds.width() + shadowPaddingPx * 2
-        val windowHeight = bounds.height() + shadowPaddingPx * 2
-        bubbleLayoutParams.width = windowWidth
-        bubbleLayoutParams.height = windowHeight
-        bubbleLayoutParams.x = bounds.left - shadowPaddingPx
-        bubbleLayoutParams.y = bounds.top - shadowPaddingPx
-
-        if (bubbleView == null) {
-            bubbleView = createBubbleView()
-            windowManager.addView(bubbleView, bubbleLayoutParams)
-        } else {
-            windowManager.updateViewLayout(bubbleView, bubbleLayoutParams)
-        }
-
-        if (!bubbleVisible) {
-            bubbleVisible = true
-            animateBubbleIn(bubbleView!!)
-        }
         startBubbleIdleTimer()
     }
 
@@ -794,39 +783,7 @@ class Service : AccessibilityService() {
         Log.i(TAG, "onServiceConnected done ${serviceInfo.capabilities.toString(2)}")
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        Log.i(TAG, "onAccessibilityEvent: type=${event.eventType} class=${event.className} pkg=${event.packageName}")
-        if (manager.shizukuStatus != Manager.ShizukuStatus.Connected) return
-        if (!manager.bubblePreferences.volumePanelOverlayEnabled) return
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-            event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            captureVolumePanelWindow()
-        }
-    }
-
-    private fun captureVolumePanelWindow() {
-        val windowList = try {
-            @Suppress("DEPRECATION")
-            windows
-        } catch (_: Exception) { return } ?: return
-        for (win in windowList) {
-            if (win.type == AccessibilityWindowInfo.TYPE_SYSTEM) {
-                val bounds = Rect()
-                win.getBoundsInScreen(bounds)
-                if (!bounds.isEmpty) {
-                    val w = bounds.width()
-                    val h = bounds.height()
-                    val displayW = resources.displayMetrics.widthPixels
-                    val displayH = resources.displayMetrics.heightPixels
-                    if (w >= displayW * 0.7f && h <= displayH * 0.3f) {
-                        Log.i(TAG, "captureVolumePanelWindow: captured ${bounds.flattenToString()}")
-                        volumePanelBounds = bounds
-                        snapToVolumePanel(bounds)
-                    }
-                }
-            }
-        }
-    }
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {}
 
     override fun onInterrupt() {
         Log.i(TAG, "onInterrupt")
