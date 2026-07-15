@@ -241,10 +241,13 @@ class Service : AccessibilityService() {
             @Composable
             override fun Content() {
                 val shadowEnabled = manager.bubblePreferences.shadowEnabled
+                val bubblePadding = if (shadowEnabled) 12.dp else 0.dp
 
                 VolumeManagerTheme {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bubblePadding),
                         contentAlignment = Alignment.Center
                     ) {
                         Surface(
@@ -403,6 +406,9 @@ class Service : AccessibilityService() {
         val width = resources.displayMetrics.widthPixels
         val height = resources.displayMetrics.heightPixels
         val isLandscape = width > height
+        val shadowPaddingPx = if (preferences.shadowEnabled) {
+            (resources.displayMetrics.density * 12f).roundToInt()
+        } else 0
         val layout = calculateBubbleLayout(
             widthPx = width,
             heightPx = height,
@@ -411,12 +417,14 @@ class Service : AccessibilityService() {
             horizontal = if (isLandscape) preferences.horizontalLandscape else preferences.horizontal,
             vertical = if (isLandscape) preferences.verticalLandscape else preferences.vertical
         )
-        bubbleLayoutParams.width = layout.sizePx
-        bubbleLayoutParams.height = layout.sizePx
-        bubbleLayoutParams.x =
-            layout.xPx.coerceIn(0, (width - layout.sizePx).coerceAtLeast(0))
-        bubbleLayoutParams.y =
-            layout.yPx.coerceIn(0, (height - layout.sizePx).coerceAtLeast(0))
+        val windowWidth = layout.sizePx + shadowPaddingPx * 2
+        val windowHeight = layout.sizePx + shadowPaddingPx * 2
+        bubbleLayoutParams.width = windowWidth
+        bubbleLayoutParams.height = windowHeight
+        bubbleLayoutParams.x = (layout.xPx - shadowPaddingPx)
+            .coerceIn(-shadowPaddingPx, width - windowWidth + shadowPaddingPx)
+        bubbleLayoutParams.y = (layout.yPx - shadowPaddingPx)
+            .coerceIn(-shadowPaddingPx, height - windowHeight + shadowPaddingPx)
 
         val target = bubbleView
         if (target != null) {
