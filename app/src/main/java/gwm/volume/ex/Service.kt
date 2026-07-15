@@ -442,6 +442,11 @@ class Service : AccessibilityService() {
             return
         }
 
+        if (manager.apps.none { it.value.isPlayer }) {
+            hideBubble()
+            return
+        }
+
         if (overlayVisible) {
             startOverlayIdleTimer()
             return
