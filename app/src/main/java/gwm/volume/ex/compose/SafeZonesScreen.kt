@@ -167,30 +167,26 @@ fun SafeZonesScreen(
                         } else if (hitSelected || hitAnyIndex >= 0) {
                             if (hitAnyIndex >= 0) selectedIndex = hitAnyIndex
                             val zi = if (hitAnyIndex >= 0) hitAnyIndex else selectedIndex
+                            val z0 = currentZones[zi]
+                            val w = z0.rightPercent - z0.leftPercent
+                            val h = z0.bottomPercent - z0.topPercent
+                            val offX = xPct - z0.leftPercent
+                            val offY = yPct - z0.topPercent
                             while (true) {
                                 val event = awaitPointerEvent()
                                 val c = event.changes.firstOrNull { it.id == down.id } ?: break
                                 if (!c.pressed) break
                                 val nx = (c.position.x / cw).coerceIn(0f, 1f)
                                 val ny = (c.position.y / ch).coerceIn(0f, 1f)
-                                val dx = nx - lastXPct
-                                val dy = ny - lastYPct
-                                if (dx != 0f || dy != 0f) dragged = true
-                                if (dragged) {
-                                    val z = currentZones[zi]
-                                    val w = z.rightPercent - z.leftPercent
-                                    val h = z.bottomPercent - z.topPercent
-                                    val newLeft = maxOf(mnX, minOf(z.leftPercent + dx, 1f - w - mnX))
-                                    val newTop = maxOf(mnY, minOf(z.topPercent + dy, 1f - h - mnY))
-                                    onZonesChange(currentZones.toMutableList().apply {
-                                        set(zi, sanitize(SafeZone(
-                                            newLeft, newTop,
-                                            newLeft + w, newTop + h
-                                        )))
-                                    })
-                                }
-                                lastXPct = nx
-                                lastYPct = ny
+                                dragged = true
+                                val newLeft = maxOf(mnX, minOf(nx - offX, 1f - w - mnX))
+                                val newTop = maxOf(mnY, minOf(ny - offY, 1f - h - mnY))
+                                onZonesChange(currentZones.toMutableList().apply {
+                                    set(zi, sanitize(SafeZone(
+                                        newLeft, newTop,
+                                        newLeft + w, newTop + h
+                                    )))
+                                })
                                 c.consume()
                             }
                         } else {
