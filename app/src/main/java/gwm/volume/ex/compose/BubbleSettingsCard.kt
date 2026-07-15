@@ -178,7 +178,7 @@ fun BubbleSettingsCard(
                     Icon(
                         Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp).padding(end = 12.dp)
+                        modifier = Modifier.size(32.dp).padding(end = 12.dp)
                     )
                     Text("Show system volume sliders", modifier = Modifier.weight(1f))
                     Switch(
@@ -204,7 +204,7 @@ fun BubbleSettingsCard(
                             Icon(
                                 imageVector = streamIcons[id] ?: Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp).padding(end = 8.dp)
+                                modifier = Modifier.size(24.dp).padding(end = 8.dp)
                             )
                             Text(label, modifier = Modifier.weight(1f))
                             Switch(
@@ -219,7 +219,7 @@ fun BubbleSettingsCard(
                     Icon(
                         Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp).padding(end = 12.dp)
+                        modifier = Modifier.size(32.dp).padding(end = 12.dp)
                     )
                     Text("Show app volume list", modifier = Modifier.weight(1f))
                     Switch(
