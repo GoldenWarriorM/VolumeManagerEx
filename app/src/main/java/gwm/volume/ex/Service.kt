@@ -437,6 +437,11 @@ class Service : AccessibilityService() {
     }
 
     private fun showBubble() {
+        if (!manager.bubblePreferences.enabled) {
+            hideBubble()
+            return
+        }
+
         if (overlayVisible) {
             startOverlayIdleTimer()
             return
@@ -663,9 +668,13 @@ class Service : AccessibilityService() {
             when (intent.action) {
                 ACTION_SHOW_VIEW -> showOverlay()
                 ACTION_BUBBLE_SETTINGS_CHANGED -> {
-                    updateBubbleLayout()
-                    if (bubblePreviewModeEnabled && !overlayVisible) {
-                        showBubble()
+                    if (!manager.bubblePreferences.enabled) {
+                        hideBubble()
+                    } else {
+                        updateBubbleLayout()
+                        if (bubblePreviewModeEnabled && !overlayVisible) {
+                            showBubble()
+                        }
                     }
                 }
                 ACTION_BUBBLE_PREVIEW_MODE -> {

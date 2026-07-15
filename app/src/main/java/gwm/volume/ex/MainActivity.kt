@@ -482,7 +482,6 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             BubbleSettingsCard(
                                                 bubbleEnabled = bubblePreferences.enabled,
-                                                settingsModified = settingsModified,
                                                 sizeScale = bubblePreferences.sizeScale,
                                                 horizontal = bubblePreferences.horizontal,
                                                 vertical = bubblePreferences.vertical,
@@ -496,6 +495,8 @@ class MainActivity : ComponentActivity() {
                                                 systemSliderVisibility = manager.systemSliderVisibility,
                                                 onBubbleEnabledChange = {
                                                     manager.setBubbleEnabled(it)
+                                                    settingsModified = true
+                                                    setBubblePreviewMode(true)
                                                     notifyBubbleSettingsChanged()
                                                 },
                                                 onSizeScaleChange = {

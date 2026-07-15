@@ -52,7 +52,6 @@ import java.util.Locale
 @Composable
 fun BubbleSettingsCard(
     bubbleEnabled: Boolean,
-    settingsModified: Boolean = true,
     sizeScale: Float,
     horizontal: Float,
     vertical: Float,
@@ -106,14 +105,12 @@ fun BubbleSettingsCard(
             ) {
                 Text("Volume Bubble", style = MaterialTheme.typography.titleLarge)
 
-                if (settingsModified) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Enabled", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = bubbleEnabled,
-                            onCheckedChange = onBubbleEnabledChange
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Enabled", modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = bubbleEnabled,
+                        onCheckedChange = onBubbleEnabledChange
+                    )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
