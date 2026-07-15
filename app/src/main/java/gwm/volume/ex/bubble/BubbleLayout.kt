@@ -4,7 +4,7 @@ import kotlin.math.roundToInt
 
 const val BASE_BUBBLE_SIZE_DP = 44f
 const val MIN_BUBBLE_SIZE_DP = 28f
-const val BUBBLE_SHADOW_PADDING_DP = 16f
+const val BUBBLE_SHADOW_PADDING_DP = 10f
 
 data class BubbleLayout(
     val sizePx: Int,

@@ -51,7 +51,6 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import gwm.volume.ex.bubble.BUBBLE_SHADOW_PADDING_DP
 import gwm.volume.ex.bubble.calculateBubbleLayout
 import gwm.volume.ex.compose.AppVolumeList
 import gwm.volume.ex.compose.SystemVolumePanel
@@ -241,15 +240,11 @@ class Service : AccessibilityService() {
 
             @Composable
             override fun Content() {
-                val preferences = manager.bubblePreferences
-                val shadowEnabled = preferences.shadowEnabled
-                val bubblePadding = if (shadowEnabled) BUBBLE_SHADOW_PADDING_DP.dp else 0.dp
+                val shadowEnabled = manager.bubblePreferences.shadowEnabled
 
                 VolumeManagerTheme {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bubblePadding),
+                        modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Surface(
@@ -408,11 +403,6 @@ class Service : AccessibilityService() {
         val width = resources.displayMetrics.widthPixels
         val height = resources.displayMetrics.heightPixels
         val isLandscape = width > height
-        val shadowPaddingPx = if (preferences.shadowEnabled) {
-            (resources.displayMetrics.density * BUBBLE_SHADOW_PADDING_DP).roundToInt()
-        } else {
-            0
-        }
         val layout = calculateBubbleLayout(
             widthPx = width,
             heightPx = height,
@@ -421,14 +411,12 @@ class Service : AccessibilityService() {
             horizontal = if (isLandscape) preferences.horizontalLandscape else preferences.horizontal,
             vertical = if (isLandscape) preferences.verticalLandscape else preferences.vertical
         )
-        val windowWidth = layout.sizePx + shadowPaddingPx * 2
-        val windowHeight = layout.sizePx + shadowPaddingPx * 2
-        bubbleLayoutParams.width = windowWidth
-        bubbleLayoutParams.height = windowHeight
+        bubbleLayoutParams.width = layout.sizePx
+        bubbleLayoutParams.height = layout.sizePx
         bubbleLayoutParams.x =
-            (layout.xPx - shadowPaddingPx).coerceIn(0, (width - windowWidth).coerceAtLeast(0))
+            layout.xPx.coerceIn(0, (width - layout.sizePx).coerceAtLeast(0))
         bubbleLayoutParams.y =
-            (layout.yPx - shadowPaddingPx).coerceIn(0, (height - windowHeight).coerceAtLeast(0))
+            layout.yPx.coerceIn(0, (height - layout.sizePx).coerceAtLeast(0))
 
         val target = bubbleView
         if (target != null) {
