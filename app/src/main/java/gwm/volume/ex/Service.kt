@@ -233,7 +233,7 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    if (!isInSafeZone(event, this)) {
+                    if (!isInSafeZone(event)) {
                         hideBubble()
                     }
                     return true
@@ -640,7 +640,7 @@ class Service : AccessibilityService() {
         animation.start()
     }
 
-    private fun isInSafeZone(event: MotionEvent, view: View): Boolean {
+    private fun isInSafeZone(event: MotionEvent): Boolean {
         val zones = manager.bubblePreferences.safeZones
         if (zones.isEmpty()) return false
 
@@ -650,22 +650,8 @@ class Service : AccessibilityService() {
         val width = realSize.x.toFloat()
         val height = realSize.y.toFloat()
 
-        val rawX = event.rawX
-        val rawY = event.rawY
-        val screenX: Float
-        val screenY: Float
-        if (rawX == 0f && rawY == 0f) {
-            val location = IntArray(2)
-            view.getLocationOnScreen(location)
-            screenX = event.x + location[0]
-            screenY = event.y + location[1]
-        } else {
-            screenX = rawX
-            screenY = rawY
-        }
-
-        val xPct = screenX / width
-        val yPct = screenY / height
+        val xPct = event.rawX / width
+        val yPct = event.rawY / height
 
         return zones.any { zone ->
             xPct >= zone.leftPercent && xPct <= zone.rightPercent &&

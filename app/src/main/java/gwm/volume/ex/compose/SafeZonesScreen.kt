@@ -110,7 +110,7 @@ fun SafeZonesScreen(
                         val xPct = (down.position.x / cw).coerceIn(0f, 1f)
                         val yPct = (down.position.y / ch).coerceIn(0f, 1f)
                         val zn = currentZones
-                        val handleThresholdPct = handleHitPx / cw
+                        val handleThresholdPct = handleHitPx / minOf(cw, ch)
                         val mnX = 20f / cw
                         val mnY = 20f / ch
 
@@ -167,7 +167,9 @@ fun SafeZonesScreen(
                         } else if (hitSelected || hitAnyIndex >= 0) {
                             if (hitAnyIndex >= 0) selectedIndex = hitAnyIndex
                             val zi = if (hitAnyIndex >= 0) hitAnyIndex else selectedIndex
-                            val z0 = currentZones[zi]
+                            val zn = currentZones
+                            if (zi !in zn.indices) return@awaitEachGesture
+                            val z0 = zn[zi]
                             val w = z0.rightPercent - z0.leftPercent
                             val h = z0.bottomPercent - z0.topPercent
                             val offX = xPct - z0.leftPercent
@@ -181,7 +183,9 @@ fun SafeZonesScreen(
                                 dragged = true
                                 val newLeft = maxOf(mnX, minOf(nx - offX, 1f - w - mnX))
                                 val newTop = maxOf(mnY, minOf(ny - offY, 1f - h - mnY))
-                                onZonesChange(currentZones.toMutableList().apply {
+                                val updatedZn = currentZones
+                                if (zi !in updatedZn.indices) break
+                                onZonesChange(updatedZn.toMutableList().apply {
                                     set(zi, sanitize(SafeZone(
                                         newLeft, newTop,
                                         newLeft + w, newTop + h
@@ -352,9 +356,8 @@ private fun findHandle(
 }
 
 private fun isInside(zone: SafeZone, xPct: Float, yPct: Float): Boolean {
-    val pad = 0.01f
-    return xPct >= zone.leftPercent - pad && xPct <= zone.rightPercent + pad &&
-            yPct >= zone.topPercent - pad && yPct <= zone.bottomPercent + pad
+    return xPct >= zone.leftPercent && xPct <= zone.rightPercent &&
+            yPct >= zone.topPercent && yPct <= zone.bottomPercent
 }
 
 private fun sanitize(z: SafeZone): SafeZone {

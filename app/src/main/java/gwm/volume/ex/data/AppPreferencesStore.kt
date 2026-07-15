@@ -104,14 +104,16 @@ class AppPreferencesStore(private val dataStore: DataStore<Preferences>) {
             val value = AppPreferences()
             state.indices[packageName] = state.values.size
             state.values.add(value)
+            save()
             return value
         }
     }
 
     fun save() {
+        val encoded = synchronized(lock) { Json.encodeToString(state) }
         scope.launch {
             dataStore.edit { preferences ->
-                preferences[key] = Json.encodeToString(state)
+                preferences[key] = encoded
             }
         }
     }
