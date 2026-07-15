@@ -71,6 +71,28 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         appPreferencesStore.setSystemSliderVisible(id, visible)
     }
 
+    private val _excludedPackages = mutableStateOf<Set<String>>(emptySet())
+    val excludedPackages: Set<String>
+        get() = _excludedPackages
+
+    fun isPackageExcluded(packageName: String): Boolean {
+        return packageName in _excludedPackages.value
+    }
+
+    fun addExcludedPackage(packageName: String) {
+        if (packageName in _excludedPackages.value) return
+        val updated = _excludedPackages.value + packageName
+        _excludedPackages.value = updated
+        appPreferencesStore.setExcludedPackages(updated)
+    }
+
+    fun removeExcludedPackage(packageName: String) {
+        if (packageName !in _excludedPackages.value) return
+        val updated = _excludedPackages.value - packageName
+        _excludedPackages.value = updated
+        appPreferencesStore.setExcludedPackages(updated)
+    }
+
     val apps = mutableStateMapOf<String, App>()
 
     private fun reloadApps() {
@@ -190,6 +212,8 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
 
             _systemSliderVisibility.clear()
             _systemSliderVisibility.putAll(appPreferencesStore.systemSliderVisibility)
+
+            _excludedPackages.value = appPreferencesStore.excludedPackages
 
             if (first) {
                 initialize()

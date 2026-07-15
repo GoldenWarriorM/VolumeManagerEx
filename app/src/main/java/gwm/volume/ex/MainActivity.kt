@@ -461,6 +461,11 @@ class MainActivity : ComponentActivity() {
                                 ) { page ->
                                     if (page == Page.BubbleSettings) {
                                         val bubblePreferences = manager.bubblePreferences
+                                        val excludedLabels = remember(bubblePreferences, manager.apps) {
+                                            manager.excludedPackages.associateWith { pkg ->
+                                                manager.apps[pkg]?.name ?: pkg
+                                            }
+                                        }
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -479,6 +484,8 @@ class MainActivity : ComponentActivity() {
                                                 systemVolumeEnabled = bubblePreferences.systemVolumeEnabled,
                                                 appVolumeListEnabled = bubblePreferences.appVolumeListEnabled,
                                                 systemSliderVisibility = manager.systemSliderVisibility,
+                                                excludedPackages = manager.excludedPackages,
+                                                excludedPackageLabels = excludedLabels,
                                                 onSizeScaleChange = {
                                                     manager.setBubbleSizeScale(it)
                                                     notifyBubbleSettingsChanged()
@@ -509,6 +516,9 @@ class MainActivity : ComponentActivity() {
                                                 },
                                                 onSliderVisibilityChange = { id, visible ->
                                                     manager.setSystemSliderVisible(id, visible)
+                                                },
+                                                onRemoveExcludedPackage = {
+                                                    manager.removeExcludedPackage(it)
                                                 }
                                             )
                                         }
@@ -519,6 +529,14 @@ class MainActivity : ComponentActivity() {
                                             apps = manager.apps.values,
                                             showEmpty = true,
                                             showAll = showAll,
+                                            isExcluded = manager::isPackageExcluded,
+                                            onExcludeChange = { pkg, excluded ->
+                                                if (excluded) {
+                                                    manager.addExcludedPackage(pkg)
+                                                } else {
+                                                    manager.removeExcludedPackage(pkg)
+                                                }
+                                            },
                                             onShowAll = { showAll = true },
                                             content = {
                                                 item("system_volume_panel_main") {

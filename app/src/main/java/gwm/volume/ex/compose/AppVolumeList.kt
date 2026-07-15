@@ -43,6 +43,8 @@ fun LazyListScope.group(
     header: @Composable () -> String,
     apps: List<App>,
     enableHide: Boolean = true,
+    isExcluded: (String) -> Boolean = { false },
+    onExcludeChange: ((String, Boolean) -> Unit)? = null,
     onChange: (() -> Unit)? = null,
     onHeaderClick: (() -> Unit)? = null
 ) {
@@ -68,7 +70,12 @@ fun LazyListScope.group(
 
         items(
             items = apps.sortedWith(App.comparator), key = { app -> app.packageName }) { app ->
-            AppVolumeSlider(app, true, enableHide, onChange)
+            AppVolumeSlider(
+                app, true, enableHide,
+                isExcluded = isExcluded(app.packageName),
+                onExcludeChange = onExcludeChange?.let { { it(app.packageName, it) } },
+                onChange = onChange
+            )
         }
     }
 }
@@ -80,6 +87,8 @@ fun AppVolumeList(
     apps: MutableCollection<App>,
     showEmpty: Boolean = false,
     showAll: Boolean,
+    isExcluded: (String) -> Boolean = { false },
+    onExcludeChange: ((String, Boolean) -> Unit)? = null,
     onChange: (() -> Unit)? = null,
     onShowAll: (() -> Unit)? = null,
     content: (LazyListScope.() -> Unit)? = null
@@ -173,7 +182,7 @@ fun AppVolumeList(
         }
 
         groups.forEach { group ->
-            group({ group.name }, group.apps, enableHide = group.enableHide, onChange = onChange, onHeaderClick = { selectedGroup = group.name })
+            group({ group.name }, group.apps, enableHide = group.enableHide, isExcluded = isExcluded, onExcludeChange = onExcludeChange, onChange = onChange, onHeaderClick = { selectedGroup = group.name })
         }
     }
 

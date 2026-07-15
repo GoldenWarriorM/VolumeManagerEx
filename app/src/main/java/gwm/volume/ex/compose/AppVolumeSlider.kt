@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +31,12 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppVolumeSlider(
-    app: App, showOptions: Boolean, enableHide: Boolean = true, onChange: (() -> Unit)? = null
+    app: App,
+    showOptions: Boolean,
+    enableHide: Boolean = true,
+    isExcluded: Boolean = false,
+    onExcludeChange: ((Boolean) -> Unit)? = null,
+    onChange: (() -> Unit)? = null
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -100,6 +106,18 @@ fun AppVolumeSlider(
                 uncheckedDescription = "Disable volume buttons"
             ) {
                 app.disableVolumeButtons = it
+            }
+
+            if (onExcludeChange != null) {
+                ToggleButton(
+                    checked = isExcluded,
+                    checkedIcon = Icons.Default.Close,
+                    checkedDescription = "Include in overlay",
+                    uncheckedIcon = Icons.Default.Close,
+                    uncheckedDescription = "Exclude from overlay"
+                ) {
+                    onExcludeChange(it)
+                }
             }
         }
     }
