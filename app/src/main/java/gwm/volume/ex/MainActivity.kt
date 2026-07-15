@@ -546,7 +546,7 @@ class MainActivity : ComponentActivity() {
                                                         notificationManagerProxy = manager.notificationManagerProxy,
                                                         showCallVolumeAlways = true,
                                                         applyVisibilityFilter = !showAll,
-                                                        allowVisibilityConfig = showAll,
+                                                        allowVisibilityConfig = false,
                                                         isSliderVisible = manager::isSystemSliderVisible,
                                                         onSliderVisibilityChange = manager::setSystemSliderVisible,
                                                     )
