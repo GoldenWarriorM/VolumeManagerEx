@@ -233,7 +233,9 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    if (!isInSafeZone(event)) {
+                    if (isInSafeZone(event)) {
+                        startBubbleIdleTimer()
+                    } else {
                         hideBubble()
                     }
                     return true
