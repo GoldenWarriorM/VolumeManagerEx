@@ -25,7 +25,7 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -191,7 +191,8 @@ class Service : AccessibilityService() {
                         shape = RoundedCornerShape(40f)
                     ) {
                         Column(
-                            modifier = Modifier.padding(20.dp, 16.dp)
+                            modifier = Modifier.padding(20.dp, 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             if (prefs.systemVolumeEnabled) {
                                 SystemVolumePanel(
