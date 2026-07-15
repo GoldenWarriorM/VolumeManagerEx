@@ -15,6 +15,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
@@ -24,7 +25,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityWindowInfo
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -61,6 +61,7 @@ import gwm.volume.ex.data.BubbleAnimationStyle
 import gwm.volume.ex.system.ActivityTaskManagerProxy
 import gwm.volume.ex.ui.theme.VolumeManagerTheme
 import org.joor.Reflect
+import rikka.shizuku.ShizukuBinderWrapper
 import java.util.Objects
 import kotlin.math.roundToInt
 
@@ -507,31 +508,53 @@ class Service : AccessibilityService() {
 
     private fun getVolumePanelBounds(): Rect? {
         return try {
-            @Suppress("DEPRECATION")
-            val windowList: List<AccessibilityWindowInfo> = windows ?: return null
-            Log.i(TAG, "getVolumePanelBounds: got ${windowList.size} windows from accessibility")
-            for (win in windowList) {
-                val type = win.type
-                val bounds = Rect()
-                win.getBoundsInScreen(bounds)
-                Log.i(TAG, "getVolumePanelBounds: id=${win.id} type=$type bounds=${bounds.flattenToString()}")
-                if (type == AccessibilityWindowInfo.TYPE_SYSTEM && !bounds.isEmpty) {
-                    val w = bounds.width()
-                    val h = bounds.height()
-                    val displayW = resources.displayMetrics.widthPixels
-                    val displayH = resources.displayMetrics.heightPixels
-                    if (w >= displayW * 0.7f && h <= displayH * 0.3f) {
-                        Log.i(TAG, "getVolumePanelBounds: volume panel candidate at ${bounds.flattenToString()}")
-                        return bounds
+            Log.i(TAG, "getVolumePanelBounds: getting window service binder")
+            val windowBinder = Reflect.onClass("android.os.ServiceManager")
+                .call("getService", "window")
+                .get<IBinder>()
+            if (windowBinder == null) {
+                Log.w(TAG, "getVolumePanelBounds: window service binder is null")
+                return null
+            }
+            Log.i(TAG, "getVolumePanelBounds: wrapping with ShizukuBinderWrapper")
+            val wrappedBinder = ShizukuBinderWrapper(windowBinder)
+            Log.i(TAG, "getVolumePanelBounds: calling IWindowManager.Stub.asInterface")
+            val wm = Reflect.onClass("android.view.IWindowManager\$Stub")
+                .call("asInterface", wrappedBinder)
+                .get<Any>()
+            if (wm == null) {
+                Log.w(TAG, "getVolumePanelBounds: IWindowManager is null")
+                return null
+            }
+            Log.i(TAG, "getVolumePanelBounds: calling getWindowInfos")
+            val windowInfos = Reflect.on(wm).call("getWindowInfos").get<List<Any>>()
+            if (windowInfos == null) {
+                Log.w(TAG, "getVolumePanelBounds: windowInfos is null")
+                return null
+            }
+            Log.i(TAG, "getVolumePanelBounds: got ${windowInfos.size} windows")
+            for (info in windowInfos) {
+                val type = try {
+                    Reflect.on(info).field("type").get<Int>()
+                } catch (_: Exception) {
+                    Reflect.on(info).call("getType").get<Int>()
+                }
+                Log.i(TAG, "getVolumePanelBounds: window type=$type")
+                if (type == 2038) {
+                    val frame = try {
+                        Reflect.on(info).field("frame").get<Rect>()
+                    } catch (_: Exception) {
+                        Reflect.on(info).call("getFrame").get<Rect>()
                     }
+                    if (frame == null) {
+                        Log.w(TAG, "getVolumePanelBounds: TYPE_VOLUME_OVERLAY found but frame is null")
+                        continue
+                    }
+                    Log.i(TAG, "getVolumePanelBounds: found volume panel at ${frame.flattenToString()}")
+                    return frame
                 }
             }
-            Log.w(TAG, "getVolumePanelBounds: no volume panel window found")
-            for (win in windowList) {
-                val b = Rect()
-                win.getBoundsInScreen(b)
-                Log.i(TAG, "getVolumePanelBounds: fallback id=${win.id} type=${win.type} bounds=${b.flattenToString()}")
-            }
+            Log.w(TAG, "getVolumePanelBounds: no window with type 2038 found")
             null
         } catch (e: Exception) {
             Log.e(TAG, "getVolumePanelBounds: error", e)
