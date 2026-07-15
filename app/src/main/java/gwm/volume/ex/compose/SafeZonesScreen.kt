@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -112,6 +111,8 @@ fun SafeZonesScreen(
                         val yPct = (down.position.y / ch).coerceIn(0f, 1f)
                         val zn = currentZones
                         val handleThresholdPct = handleHitPx / cw
+                        val mnX = 20f / cw
+                        val mnY = 20f / ch
 
                         val hitHandle = findHandle(zn, selectedIndex, xPct, yPct, handleThresholdPct)
                         val hitSelected = hitHandle == null && selectedIndex in zn.indices &&
@@ -126,8 +127,6 @@ fun SafeZonesScreen(
 
                         if (hitHandle != null) {
                             val zi = selectedIndex
-                            val mnX = 20f / cw
-                            val mnY = 20f / ch
                             val eps = 0.005f
                             while (true) {
                                 val event = awaitPointerEvent()
@@ -181,8 +180,8 @@ fun SafeZonesScreen(
                                     val z = currentZones[zi]
                                     val w = z.rightPercent - z.leftPercent
                                     val h = z.bottomPercent - z.topPercent
-                                    val newLeft = (z.leftPercent + dx).coerceIn(0f, 1f - w)
-                                    val newTop = (z.topPercent + dy).coerceIn(0f, 1f - h)
+                                    val newLeft = (z.leftPercent + dx).coerceIn(mnX, 1f - w - mnX)
+                                    val newTop = (z.topPercent + dy).coerceIn(mnY, 1f - h - mnY)
                                     onZonesChange(currentZones.toMutableList().apply {
                                         set(zi, sanitize(SafeZone(
                                             newLeft, newTop,
@@ -270,8 +269,6 @@ fun SafeZonesScreen(
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -298,7 +295,6 @@ fun SafeZonesScreen(
         }
 
         if (zones.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
             zones.forEachIndexed { index, zone ->
                 val color = zoneColors[index % zoneColors.size]
                 Row(
