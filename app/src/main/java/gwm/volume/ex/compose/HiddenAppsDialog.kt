@@ -154,6 +154,7 @@ fun HiddenAppsContent(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .animateItem()
                             .background(MaterialTheme.colorScheme.surface)
                             .padding(vertical = 8.dp)
                     )
@@ -175,6 +176,7 @@ fun HiddenAppsContent(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .animateItem()
                             .background(MaterialTheme.colorScheme.surface)
                             .padding(vertical = 8.dp)
                     )
@@ -197,23 +199,24 @@ fun HiddenAppsContent(
                     text = "Visible (${filteredVisible.size})",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(vertical = 8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(vertical = 8.dp)
                 )
             }
 
             items(
                 items = filteredVisible,
                 key = { it.packageName.let { "visible_$it" } }
-            ) { app ->
-                HiddenAppCard(
-                    app = app,
-                    isHidden = false,
-                    onToggle = { app.hidden = true }
-                )
-            }
+                ) { app ->
+                    HiddenAppCard(
+                        app = app,
+                        isHidden = false,
+                        onToggle = { app.hidden = true }
+                    )
+                }
         }
     }
 }
