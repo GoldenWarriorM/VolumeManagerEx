@@ -31,7 +31,8 @@ data class BubblePreferences(
     var animationStyle: BubbleAnimationStyle = BubbleAnimationStyle.Default,
     var systemVolumeEnabled: Boolean = true,
     var appVolumeListEnabled: Boolean = true,
-    var safeZones: List<SafeZone> = emptyList()
+    var safeZones: List<SafeZone> = emptyList(),
+    var safeZonesLandscape: List<SafeZone> = emptyList()
 )
 
 @Serializable

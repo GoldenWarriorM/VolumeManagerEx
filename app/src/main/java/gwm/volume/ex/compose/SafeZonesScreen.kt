@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,8 +70,11 @@ import kotlin.math.min
 @Composable
 fun SafeZonesScreen(
     zones: List<SafeZone>,
-    onZonesChange: (List<SafeZone>) -> Unit
+    onZonesChange: (List<SafeZone>) -> Unit,
+    zonesLandscape: List<SafeZone>,
+    onZonesLandscapeChange: (List<SafeZone>) -> Unit
 ) {
+    var isLandscapeMode by remember { mutableStateOf(false) }
     var selectedIndex by remember { mutableIntStateOf(-1) }
     var drawingRect by remember { mutableStateOf<SafeZone?>(null) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -78,7 +82,11 @@ fun SafeZonesScreen(
     var isCapturing by remember { mutableStateOf(false) }
     val captureScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val currentZones by rememberUpdatedState(zones)
+
+    val activeZones = if (isLandscapeMode) zonesLandscape else zones
+    val activeOnZonesChange = if (isLandscapeMode) onZonesLandscapeChange else onZonesChange
+    val currentZones by rememberUpdatedState(activeZones)
+    val currentOnZonesChange by rememberUpdatedState(activeOnZonesChange)
 
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -99,8 +107,17 @@ fun SafeZonesScreen(
 
     val config = LocalConfiguration.current
     val density = LocalDensity.current
-    val screenRatio = config.screenWidthDp.toFloat() / config.screenHeightDp.toFloat()
+    val screenRatio = if (isLandscapeMode)
+        config.screenHeightDp.toFloat() / config.screenWidthDp.toFloat()
+    else
+        config.screenWidthDp.toFloat() / config.screenHeightDp.toFloat()
     val handleHitPx = with(density) { 28.dp.toPx() }
+
+    LaunchedEffect(isLandscapeMode) {
+        selectedIndex = -1
+        screenshotBitmap = null
+        drawingRect = null
+    }
 
     val bgColor = Color(0xFF1A1A2E)
     val zoneColors = listOf(
@@ -127,12 +144,42 @@ fun SafeZonesScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            val btnMod = Modifier.weight(1f)
+            val activeColor = MaterialTheme.colorScheme.primary
+            val inactiveColor = MaterialTheme.colorScheme.outline
+            Button(
+                onClick = { isLandscapeMode = false },
+                modifier = btnMod,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (!isLandscapeMode) activeColor else inactiveColor.copy(alpha = 0.12f),
+                    contentColor = if (!isLandscapeMode) MaterialTheme.colorScheme.onPrimary else inactiveColor
+                )
+            ) {
+                Text("Portrait")
+            }
+            Spacer(modifier = Modifier.size(4.dp))
+            Button(
+                onClick = { isLandscapeMode = true },
+                modifier = btnMod,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isLandscapeMode) activeColor else inactiveColor.copy(alpha = 0.12f),
+                    contentColor = if (isLandscapeMode) MaterialTheme.colorScheme.onPrimary else inactiveColor
+                )
+            ) {
+                Text("Landscape")
+            }
+        }
+
         Canvas(
             modifier = Modifier
                 .fillMaxWidth(0.75f)
                 .aspectRatio(screenRatio)
                 .onSizeChanged { canvasSize = it }
-                .pointerInput(zones.size) {
+                .pointerInput(activeZones.size) {
                     awaitEachGesture {
                         val down = awaitFirstDown(requireUnconsumed = false)
                         val cw = size.width.toFloat()
@@ -188,7 +235,7 @@ fun SafeZonesScreen(
                                     else -> z
                                 }.let { sanitize(it) }
                                 if (dragged) {
-                                    onZonesChange(currentZones.toMutableList().apply { set(zi, updated) })
+                                    currentOnZonesChange(currentZones.toMutableList().apply { set(zi, updated) })
                                 }
                                 lastXPct = nx
                                 lastYPct = ny
@@ -215,7 +262,7 @@ fun SafeZonesScreen(
                                 val newTop = maxOf(mnY, minOf(ny - offY, 1f - h - mnY))
                                 val updatedZn = currentZones
                                 if (zi !in updatedZn.indices) break
-                                onZonesChange(updatedZn.toMutableList().apply {
+                                currentOnZonesChange(updatedZn.toMutableList().apply {
                                     set(zi, sanitize(SafeZone(
                                         newLeft, newTop,
                                         newLeft + w, newTop + h
@@ -234,7 +281,7 @@ fun SafeZonesScreen(
                                 val c = event.changes.firstOrNull { it.id == down.id } ?: break
                                 if (!c.pressed) {
                                     if (dragged && min(abs(ex - sx), abs(ey - sy)) > 0.015f) {
-                                        onZonesChange(currentZones + sanitize(SafeZone(
+                                        currentOnZonesChange(currentZones + sanitize(SafeZone(
                                             minOf(sx, ex), minOf(sy, ey),
                                             maxOf(sx, ex), maxOf(sy, ey)
                                         )))
@@ -265,7 +312,7 @@ fun SafeZonesScreen(
                 drawImage(image = img, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
             }
 
-            for ((index, zone) in zones.withIndex()) {
+            for ((index, zone) in activeZones.withIndex()) {
                 val color = zoneColors[index % zoneColors.size]
                 val isSel = index == selectedIndex
                 val rect = Rect(
@@ -323,10 +370,10 @@ fun SafeZonesScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (selectedIndex in zones.indices) {
+            if (selectedIndex in activeZones.indices) {
                 Button(
                     onClick = {
-                        onZonesChange(zones.toMutableList().apply { removeAt(selectedIndex) })
+                        activeOnZonesChange(activeZones.toMutableList().apply { removeAt(selectedIndex) })
                         selectedIndex = -1
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -337,15 +384,15 @@ fun SafeZonesScreen(
                     Text("Delete Selected", modifier = Modifier.padding(start = 4.dp))
                 }
             }
-            if (zones.isNotEmpty()) {
-                Button(onClick = { onZonesChange(emptyList()); selectedIndex = -1 }) {
+            if (activeZones.isNotEmpty()) {
+                Button(onClick = { activeOnZonesChange(emptyList()); selectedIndex = -1 }) {
                     Text("Clear All")
                 }
             }
         }
 
-        if (zones.isNotEmpty()) {
-            zones.forEachIndexed { index, zone ->
+        if (activeZones.isNotEmpty()) {
+            activeZones.forEachIndexed { index, zone ->
                 val color = zoneColors[index % zoneColors.size]
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -372,7 +419,7 @@ fun SafeZonesScreen(
                     )
                     IconButton(
                         onClick = {
-                            onZonesChange(zones.toMutableList().apply { removeAt(index) })
+                            activeOnZonesChange(activeZones.toMutableList().apply { removeAt(index) })
                             if (selectedIndex == index) selectedIndex = -1
                             else if (selectedIndex > index) selectedIndex--
                         },

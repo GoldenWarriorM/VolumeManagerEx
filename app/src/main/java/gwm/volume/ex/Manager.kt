@@ -309,4 +309,11 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         _bubblePreferences = next
         appPreferencesStore.setBubble(next)
     }
+
+    fun setSafeZonesLandscape(zones: List<SafeZone>) {
+        val next = _bubblePreferences.copy(safeZonesLandscape = zones)
+        if (next == _bubblePreferences) return
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
 }
