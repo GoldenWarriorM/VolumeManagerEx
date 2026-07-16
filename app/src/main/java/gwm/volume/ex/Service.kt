@@ -659,6 +659,17 @@ class Service : AccessibilityService() {
         val screenY: Float
         if (rawX == 0f && rawY == 0f) {
             if (event.x == 0f && event.y == 0f) {
+                val tapPct = manager.getEventReader.getTouchPct()
+                if (tapPct != null) {
+                    val (exPct, eyPct) = tapPct
+                    val hit = zones.any { zone ->
+                        exPct >= zone.leftPercent && exPct <= zone.rightPercent &&
+                                eyPct >= zone.topPercent && eyPct <= zone.bottomPercent
+                    }
+                    Log.d("SafeZone", "getevent: pct=(%.4f,%.4f) result: %s"
+                        .format(exPct, eyPct, if (hit) "IN ZONE" else "OUTSIDE"))
+                    return hit
+                }
                 Log.d("SafeZone", "unreliable coordinates, assuming in zone")
                 return true
             }

@@ -20,6 +20,10 @@ import gwm.volume.ex.data.AppPreferencesStore
 import gwm.volume.ex.system.AudioPlaybackConfigurationProxy
 import gwm.volume.ex.system.NotificationManagerProxy
 import gwm.volume.ex.system.PackageManagerProxy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.joor.Reflect
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuProvider
@@ -54,6 +58,9 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
     private var _bubblePreferences by mutableStateOf(appPreferencesStore.bubble)
     val bubblePreferences: BubblePreferences
         get() = _bubblePreferences
+
+    private val _getEventReader = GetEventReader(CoroutineScope(Dispatchers.IO + SupervisorJob()))
+    val getEventReader: GetEventReader get() = _getEventReader
 
     private val _systemSliderVisibility = mutableStateMapOf<String, Boolean>()
     val systemSliderVisibility: Map<String, Boolean>
@@ -179,6 +186,7 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
     }
 
     private fun start() {
+        _getEventReader.start()
         appPreferencesStore.track { first ->
             _bubblePreferences = appPreferencesStore.bubble
 
