@@ -551,7 +551,8 @@ class MainActivity : ComponentActivity() {
                                             } else {
                                                 SafeZonesScreen(
                                                     zones = manager.bubblePreferences.safeZones,
-                                                    onZonesChange = manager::setSafeZones
+                                                    onZonesChange = manager::setSafeZones,
+                                                    screenshotProvider = { manager.captureScreen() }
                                                 )
                                             }
                                         }

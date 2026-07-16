@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,6 +44,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -50,8 +53,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import android.graphics.BitmapFactory
 import gwm.volume.ex.data.SafeZone
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -59,11 +66,15 @@ import kotlin.math.min
 @Composable
 fun SafeZonesScreen(
     zones: List<SafeZone>,
-    onZonesChange: (List<SafeZone>) -> Unit
+    onZonesChange: (List<SafeZone>) -> Unit,
+    screenshotProvider: (suspend () -> ByteArray?)? = null
 ) {
     var selectedIndex by remember { mutableIntStateOf(-1) }
     var drawingRect by remember { mutableStateOf<SafeZone?>(null) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+    var screenshotBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var isCapturing by remember { mutableStateOf(false) }
+    val captureScope = rememberCoroutineScope()
     val currentZones by rememberUpdatedState(zones)
 
     val config = LocalConfiguration.current
@@ -230,6 +241,9 @@ fun SafeZonesScreen(
             val w = size.width
             val h = size.height
 
+            screenshotBitmap?.let { img ->
+                drawImage(image = img, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
+            }
             drawRoundRect(color = bgColor, cornerRadius = CornerRadius(16f), size = size)
 
             for ((index, zone) in zones.withIndex()) {
@@ -266,6 +280,38 @@ fun SafeZonesScreen(
                 )
                 drawRect(color = drawPreviewFill, topLeft = rect.topLeft, size = rect.size)
                 drawRect(color = drawPreviewBorder, topLeft = rect.topLeft, size = rect.size, style = Stroke(width = 2f))
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (screenshotProvider != null) {
+                Button(
+                    onClick = {
+                        if (isCapturing) return@Button
+                        isCapturing = true
+                        captureScope.launch(Dispatchers.IO) {
+                            val bytes = screenshotProvider()
+                            if (bytes != null) {
+                                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                                withContext(Dispatchers.Main) {
+                                    screenshotBitmap = bmp?.asImageBitmap()
+                                }
+                            }
+                            isCapturing = false
+                        }
+                    },
+                    enabled = !isCapturing
+                ) {
+                    Text(if (isCapturing) "Capturing..." else "Screenshot")
+                }
+            }
+            if (screenshotBitmap != null) {
+                Button(onClick = { screenshotBitmap = null }) {
+                    Text("Clear Screenshot")
+                }
             }
         }
 

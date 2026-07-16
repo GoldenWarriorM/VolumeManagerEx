@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import android.media.AudioManager
 import android.media.AudioPlaybackConfiguration
 import androidx.compose.runtime.getValue
@@ -23,7 +24,6 @@ import gwm.volume.ex.system.PackageManagerProxy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import org.joor.Reflect
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuProvider
@@ -291,6 +291,16 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         if (next == _bubblePreferences) return
         _bubblePreferences = next
         appPreferencesStore.setBubble(next)
+    }
+
+    fun captureScreen(): ByteArray? {
+        return try {
+            val p = Runtime.getRuntime().exec(arrayOf("su", "-c", "screencap", "-p"))
+            p.inputStream.readBytes()
+        } catch (e: Exception) {
+            Log.e("Manager", "capture failed", e)
+            null
+        }
     }
 
     fun setSafeZones(zones: List<SafeZone>) {
