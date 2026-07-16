@@ -131,7 +131,6 @@ fun SafeZonesScreen(
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 460.dp)
                 .aspectRatio(screenRatio)
                 .onSizeChanged { canvasSize = it }
                 .pointerInput(zones.size) {
@@ -262,10 +261,10 @@ fun SafeZonesScreen(
             val w = size.width
             val h = size.height
 
+            drawRoundRect(color = bgColor, cornerRadius = CornerRadius(16f), size = size)
             screenshotBitmap?.let { img ->
                 drawImage(image = img, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
             }
-            drawRoundRect(color = bgColor, cornerRadius = CornerRadius(16f), size = size)
 
             for ((index, zone) in zones.withIndex()) {
                 val color = zoneColors[index % zoneColors.size]
