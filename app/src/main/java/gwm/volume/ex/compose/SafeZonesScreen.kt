@@ -101,6 +101,7 @@ fun SafeZonesScreen(
     val config = LocalConfiguration.current
     val density = LocalDensity.current
     val screenRatio = config.screenWidthDp.toFloat() / config.screenHeightDp.toFloat()
+    val canvasMaxHeightDp = (config.screenHeightDp * 0.6f).dp
     val handleHitPx = with(density) { 28.dp.toPx() }
 
     val bgColor = Color(0xFF1A1A2E)
@@ -131,6 +132,7 @@ fun SafeZonesScreen(
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = canvasMaxHeightDp)
                 .aspectRatio(screenRatio)
                 .onSizeChanged { canvasSize = it }
                 .pointerInput(zones.size) {
