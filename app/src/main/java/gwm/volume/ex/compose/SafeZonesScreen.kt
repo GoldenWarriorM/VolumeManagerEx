@@ -54,6 +54,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import gwm.volume.ex.data.SafeZone
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -66,8 +70,7 @@ import kotlin.math.min
 @Composable
 fun SafeZonesScreen(
     zones: List<SafeZone>,
-    onZonesChange: (List<SafeZone>) -> Unit,
-    screenshotProvider: (suspend () -> ByteArray?)? = null
+    onZonesChange: (List<SafeZone>) -> Unit
 ) {
     var selectedIndex by remember { mutableIntStateOf(-1) }
     var drawingRect by remember { mutableStateOf<SafeZone?>(null) }
@@ -75,7 +78,25 @@ fun SafeZonesScreen(
     var screenshotBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
     val captureScope = rememberCoroutineScope()
+    val context = LocalContext.current
     val currentZones by rememberUpdatedState(zones)
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            isCapturing = true
+            captureScope.launch(Dispatchers.IO) {
+                val bitmap = context.contentResolver.openInputStream(uri)?.use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+                withContext(Dispatchers.Main) {
+                    screenshotBitmap = bitmap?.asImageBitmap()
+                    isCapturing = false
+                }
+            }
+        }
+    }
 
     val config = LocalConfiguration.current
     val density = LocalDensity.current
@@ -287,26 +308,11 @@ fun SafeZonesScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (screenshotProvider != null) {
-                Button(
-                    onClick = {
-                        if (isCapturing) return@Button
-                        isCapturing = true
-                        captureScope.launch(Dispatchers.IO) {
-                            val bytes = screenshotProvider()
-                            if (bytes != null) {
-                                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                                withContext(Dispatchers.Main) {
-                                    screenshotBitmap = bmp?.asImageBitmap()
-                                }
-                            }
-                            isCapturing = false
-                        }
-                    },
-                    enabled = !isCapturing
-                ) {
-                    Text(if (isCapturing) "Capturing..." else "Screenshot")
-                }
+            Button(
+                onClick = { pickImageLauncher.launch("image/*") },
+                enabled = !isCapturing
+            ) {
+                Text(if (isCapturing) "Loading..." else "Screenshot")
             }
             if (screenshotBitmap != null) {
                 Button(onClick = { screenshotBitmap = null }) {
