@@ -642,7 +642,10 @@ class Service : AccessibilityService() {
 
     private fun isInSafeZone(event: MotionEvent, view: View): Boolean {
         val zones = manager.bubblePreferences.safeZones
-        if (zones.isEmpty()) return false
+        if (zones.isEmpty()) {
+            Log.d("SafeZone", "no zones defined")
+            return false
+        }
 
         val display = windowManager.defaultDisplay
         val realSize = android.graphics.Point()
@@ -666,11 +669,19 @@ class Service : AccessibilityService() {
 
         val xPct = screenX / width
         val yPct = screenY / height
+        Log.d("SafeZone", "tap: raw=(%.0f,%.0f) screen=(%.0f,%.0f) pct=(%.4f,%.4f) win=(%dx%d)"
+            .format(rawX, rawY, screenX, screenY, xPct, yPct, realSize.x, realSize.y))
 
-        return zones.any { zone ->
-            xPct >= zone.leftPercent && xPct <= zone.rightPercent &&
+        val hit = zones.any { zone ->
+            val inside = xPct >= zone.leftPercent && xPct <= zone.rightPercent &&
                     yPct >= zone.topPercent && yPct <= zone.bottomPercent
+            Log.d("SafeZone", "  zone (%.3f,%.3f,%.3f,%.3f): %s"
+                .format(zone.leftPercent, zone.topPercent, zone.rightPercent, zone.bottomPercent,
+                    if (inside) "INSIDE ✓" else "outside"))
+            inside
         }
+        Log.d("SafeZone", "result: %s".format(if (hit) "IN ZONE (keep bubble)" else "OUTSIDE (hide)"))
+        return hit
     }
 
     private fun shouldIgnoreForegroundTaskVolumeKeys(): Boolean {
