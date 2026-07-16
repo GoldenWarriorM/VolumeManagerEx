@@ -641,18 +641,17 @@ class Service : AccessibilityService() {
     }
 
     private fun isInSafeZone(event: MotionEvent, view: View): Boolean {
-        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        val zones = if (isLandscape) manager.bubblePreferences.safeZonesLandscape else manager.bubblePreferences.safeZones
-        if (zones.isEmpty()) {
-            Log.d("SafeZone", "no zones defined")
-            return false
-        }
-
         val display = windowManager.defaultDisplay
         val realSize = android.graphics.Point()
         display.getRealSize(realSize)
         val width = realSize.x.toFloat()
         val height = realSize.y.toFloat()
+        val isLandscape = width > height
+        val zones = if (isLandscape) manager.bubblePreferences.safeZonesLandscape else manager.bubblePreferences.safeZones
+        if (zones.isEmpty()) {
+            Log.d("SafeZone", "no zones defined")
+            return false
+        }
 
         val rawX = event.rawX
         val rawY = event.rawY
