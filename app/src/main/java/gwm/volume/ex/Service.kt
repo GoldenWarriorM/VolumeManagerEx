@@ -658,6 +658,10 @@ class Service : AccessibilityService() {
         val screenX: Float
         val screenY: Float
         if (rawX == 0f && rawY == 0f) {
+            if (event.x == 0f && event.y == 0f) {
+                Log.d("SafeZone", "unreliable coordinates, assuming in zone")
+                return true
+            }
             val location = IntArray(2)
             view.getLocationOnScreen(location)
             screenX = event.x + location[0]
