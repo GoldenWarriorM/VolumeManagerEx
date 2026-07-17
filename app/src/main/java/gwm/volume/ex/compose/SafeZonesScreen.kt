@@ -125,10 +125,8 @@ fun SafeZonesScreen(
 
     val config = LocalConfiguration.current
     val density = LocalDensity.current
-    val screenRatio = if (isLandscapeMode)
-        config.screenHeightDp.toFloat() / config.screenWidthDp.toFloat()
-    else
-        config.screenWidthDp.toFloat() / config.screenHeightDp.toFloat()
+    val screenRatio = min(config.screenWidthDp, config.screenHeightDp).toFloat() /
+            max(config.screenWidthDp, config.screenHeightDp).toFloat()
     val handleHitPx = with(density) { 28.dp.toPx() }
 
     LaunchedEffect(isLandscapeMode) {
