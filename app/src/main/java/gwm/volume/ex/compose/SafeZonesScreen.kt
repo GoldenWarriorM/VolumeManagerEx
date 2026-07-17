@@ -115,7 +115,7 @@ fun SafeZonesScreen(
         displayImage = withContext(Dispatchers.Default) {
             if (isLandscapeMode) {
                 val matrix = android.graphics.Matrix()
-                matrix.postRotate(-90f)
+                matrix.postRotate(90f)
                 android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true).asImageBitmap()
             } else {
                 bmp.asImageBitmap()
@@ -203,8 +203,8 @@ fun SafeZonesScreen(
                         val ch = size.height.toFloat()
                         val cX = (down.position.x / cw).coerceIn(0f, 1f)
                         val cY = (down.position.y / ch).coerceIn(0f, 1f)
-                        val xPct = if (currentIsLandscapeMode) 1f - cY else cX
-                        val yPct = if (currentIsLandscapeMode) cX else cY
+                        val xPct = if (currentIsLandscapeMode) cY else cX
+                        val yPct = if (currentIsLandscapeMode) 1f - cX else cY
                         val zn = currentZones
                         val handleThresholdPct = handleHitPx / minOf(cw, ch)
                         val mnX = 20f / cw
@@ -230,8 +230,8 @@ fun SafeZonesScreen(
                                 if (!c.pressed) break
                                 val rcX = (c.position.x / cw).coerceIn(mnX, 1f - mnX)
                                 val rcY = (c.position.y / ch).coerceIn(mnY, 1f - mnY)
-                                val rawNx = if (currentIsLandscapeMode) 1f - rcY else rcX
-                                val rawNy = if (currentIsLandscapeMode) rcX else rcY
+                                val rawNx = if (currentIsLandscapeMode) rcY else rcX
+                                val rawNy = if (currentIsLandscapeMode) 1f - rcX else rcY
                                 val z = currentZones[zi]
                                 val nx = when (hitHandle) {
                                     0 -> maxOf(mnX, minOf(rawNx, z.rightPercent - eps))
@@ -278,8 +278,8 @@ fun SafeZonesScreen(
                                 if (!c.pressed) break
                                 val mcX = (c.position.x / cw).coerceIn(0f, 1f)
                                 val mcY = (c.position.y / ch).coerceIn(0f, 1f)
-                                val nx = if (currentIsLandscapeMode) 1f - mcY else mcX
-                                val ny = if (currentIsLandscapeMode) mcX else mcY
+                                val nx = if (currentIsLandscapeMode) mcY else mcX
+                                val ny = if (currentIsLandscapeMode) 1f - mcX else mcY
                                 dragged = true
                                 val newLeft = maxOf(mnX, minOf(nx - offX, 1f - zw - mnX))
                                 val newTop = maxOf(mnY, minOf(ny - offY, 1f - zh - mnY))
@@ -314,8 +314,8 @@ fun SafeZonesScreen(
                                 }
                                 val dcX = (c.position.x / cw).coerceIn(0f, 1f)
                                 val dcY = (c.position.y / ch).coerceIn(0f, 1f)
-                                val newEx = if (currentIsLandscapeMode) 1f - dcY else dcX
-                                val newEy = if (currentIsLandscapeMode) dcX else dcY
+                                val newEx = if (currentIsLandscapeMode) dcY else dcX
+                                val newEy = if (currentIsLandscapeMode) 1f - dcX else dcY
                                 if (abs(newEx - sx) > 0.005f || abs(newEy - sy) > 0.005f) {
                                     dragged = true
                                     drawingRect = SafeZone(
@@ -344,8 +344,8 @@ fun SafeZonesScreen(
                 val isSel = index == selectedIndex
                 val rect = if (currentIsLandscapeMode) {
                     Rect(
-                        zone.topPercent * w, (1f - zone.rightPercent) * h,
-                        zone.bottomPercent * w, (1f - zone.leftPercent) * h
+                        (1f - zone.bottomPercent) * w, zone.leftPercent * h,
+                        (1f - zone.topPercent) * w, zone.rightPercent * h
                     )
                 } else {
                     Rect(
@@ -376,8 +376,8 @@ fun SafeZonesScreen(
             drawingRect?.let { dr ->
                 val rect = if (currentIsLandscapeMode) {
                     Rect(
-                        dr.topPercent * w, (1f - dr.rightPercent) * h,
-                        dr.bottomPercent * w, (1f - dr.leftPercent) * h
+                        (1f - dr.bottomPercent) * w, dr.leftPercent * h,
+                        (1f - dr.topPercent) * w, dr.rightPercent * h
                     )
                 } else {
                     Rect(
