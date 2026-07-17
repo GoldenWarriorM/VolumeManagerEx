@@ -101,6 +101,8 @@ class Service : AccessibilityService() {
     private var bubblePreviewModeEnabled = false
     private var lastOverlayDismissMs = 0L
 
+    private var zoneDebugOverlay: ZoneDebugOverlay? = null
+
     private val overlayLayoutParams by lazy {
         WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -730,6 +732,7 @@ class Service : AccessibilityService() {
             when (intent.action) {
                 ACTION_SHOW_VIEW -> showOverlay()
                 ACTION_BUBBLE_SETTINGS_CHANGED -> {
+                    updateZoneDebugOverlay()
                     if (!manager.bubblePreferences.enabled) {
                         hideBubble()
                     } else {
@@ -778,6 +781,32 @@ class Service : AccessibilityService() {
         Log.i(TAG, "onInterrupt")
     }
 
+    private fun updateZoneDebugOverlay() {
+        val prefs = manager.bubblePreferences
+        if (prefs.debugZonesOverlay) {
+            val display = windowManager.defaultDisplay
+            val realSize = Point()
+            display.getRealSize(realSize)
+            val zones = if (realSize.x > realSize.y) prefs.safeZonesLandscape else prefs.safeZones
+            if (zoneDebugOverlay == null) {
+                val overlay = ZoneDebugOverlay(this)
+                try {
+                    windowManager.addView(overlay, overlay.getWindowLayoutParams())
+                    zoneDebugOverlay = overlay
+                } catch (e: Exception) {
+                    Log.e(TAG, "failed to add zone debug overlay", e)
+                    return
+                }
+            }
+            zoneDebugOverlay?.zones = zones
+        } else {
+            zoneDebugOverlay?.let {
+                try { windowManager.removeView(it) } catch (_: Exception) {}
+            }
+            zoneDebugOverlay = null
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 
@@ -788,6 +817,10 @@ class Service : AccessibilityService() {
         mainHandler.removeCallbacks(hideBubbleRunnable)
         hideOverlay()
         hideBubble()
+        zoneDebugOverlay?.let {
+            try { windowManager.removeView(it) } catch (_: Exception) {}
+        }
+        zoneDebugOverlay = null
 
         try {
             accessibilityButtonController.unregisterAccessibilityButtonCallback(accessibilityButtonCallback)

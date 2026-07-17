@@ -72,7 +72,9 @@ fun SafeZonesScreen(
     zones: List<SafeZone>,
     onZonesChange: (List<SafeZone>) -> Unit,
     zonesLandscape: List<SafeZone>,
-    onZonesLandscapeChange: (List<SafeZone>) -> Unit
+    onZonesLandscapeChange: (List<SafeZone>) -> Unit,
+    debugZonesOverlay: Boolean = false,
+    onDebugZonesOverlayChanged: (Boolean) -> Unit = {}
 ) {
     var isLandscapeMode by remember { mutableStateOf(false) }
     var selectedIndex by remember { mutableIntStateOf(-1) }
@@ -388,6 +390,23 @@ fun SafeZonesScreen(
                 Button(onClick = { activeOnZonesChange(emptyList()); selectedIndex = -1 }) {
                     Text("Clear All")
                 }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = { onDebugZonesOverlayChanged(!debugZonesOverlay) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (debugZonesOverlay) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    contentColor = if (debugZonesOverlay) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.outline
+                )
+            ) {
+                Text(if (debugZonesOverlay) "Debug Overlay: ON" else "Debug Overlay: OFF")
             }
         }
 

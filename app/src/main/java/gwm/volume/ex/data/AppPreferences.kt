@@ -32,7 +32,8 @@ data class BubblePreferences(
     var systemVolumeEnabled: Boolean = true,
     var appVolumeListEnabled: Boolean = true,
     var safeZones: List<SafeZone> = emptyList(),
-    var safeZonesLandscape: List<SafeZone> = emptyList()
+    var safeZonesLandscape: List<SafeZone> = emptyList(),
+    var debugZonesOverlay: Boolean = false
 )
 
 @Serializable

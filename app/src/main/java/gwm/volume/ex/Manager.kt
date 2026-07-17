@@ -316,4 +316,11 @@ class Manager(context: Context, dataStore: DataStore<Preferences>) {
         _bubblePreferences = next
         appPreferencesStore.setBubble(next)
     }
+
+    fun setDebugZonesOverlay(enabled: Boolean) {
+        val next = _bubblePreferences.copy(debugZonesOverlay = enabled)
+        if (next == _bubblePreferences) return
+        _bubblePreferences = next
+        appPreferencesStore.setBubble(next)
+    }
 }

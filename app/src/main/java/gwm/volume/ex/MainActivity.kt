@@ -553,7 +553,12 @@ class MainActivity : ComponentActivity() {
                                                     zones = manager.bubblePreferences.safeZones,
                                                     onZonesChange = manager::setSafeZones,
                                                     zonesLandscape = manager.bubblePreferences.safeZonesLandscape,
-                                                    onZonesLandscapeChange = manager::setSafeZonesLandscape
+                                                    onZonesLandscapeChange = manager::setSafeZonesLandscape,
+                                                    debugZonesOverlay = manager.bubblePreferences.debugZonesOverlay,
+                                                    onDebugZonesOverlayChanged = { enabled ->
+                                                        manager.setDebugZonesOverlay(enabled)
+                                                        notifyBubbleSettingsChanged()
+                                                    }
                                                 )
                                             }
                                         }
