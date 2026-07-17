@@ -193,7 +193,7 @@ fun SafeZonesScreen(
 
         Canvas(
             modifier = Modifier
-                .fillMaxWidth(1f)
+                .fillMaxWidth(0.75f)
                 .aspectRatio(screenRatio)
                 .onSizeChanged { canvasSize = it }
                 .pointerInput(activeZones.size, isLandscapeMode) {
