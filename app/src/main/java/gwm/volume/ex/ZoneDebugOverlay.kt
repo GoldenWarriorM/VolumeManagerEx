@@ -3,8 +3,6 @@ package gwm.volume.ex
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Point
-import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import gwm.volume.ex.data.SafeZone
@@ -34,7 +32,7 @@ class ZoneDebugOverlay(context: Context) : View(context) {
 
     fun getWindowLayoutParams(): WindowManager.LayoutParams {
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val size = Point()
+        val size = android.graphics.Point()
         wm.defaultDisplay.getRealSize(size)
         return WindowManager.LayoutParams(
             size.x,
@@ -44,9 +42,7 @@ class ZoneDebugOverlay(context: Context) : View(context) {
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             android.graphics.PixelFormat.TRANSPARENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-        }
+        )
     }
 
     override fun onDraw(canvas: Canvas) {

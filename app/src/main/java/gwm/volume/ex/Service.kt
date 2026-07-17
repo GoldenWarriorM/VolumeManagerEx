@@ -797,6 +797,10 @@ class Service : AccessibilityService() {
                     Log.e(TAG, "failed to add zone debug overlay", e)
                     return
                 }
+            } else {
+                val overlay = zoneDebugOverlay!!
+                overlay.layoutParams = overlay.getWindowLayoutParams()
+                try { windowManager.updateViewLayout(overlay, overlay.layoutParams) } catch (_: Exception) {}
             }
             zoneDebugOverlay?.zones = zones
         } else {
@@ -805,6 +809,11 @@ class Service : AccessibilityService() {
             }
             zoneDebugOverlay = null
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateZoneDebugOverlay()
     }
 
     override fun onDestroy() {
