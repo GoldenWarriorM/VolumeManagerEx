@@ -235,11 +235,10 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    val inZone = isInSafeZone(event, this)
-                    if (inZone) {
-                        Log.d("SafeZone", "ACTION: bubble KEPT (in zone)")
-                    } else {
-                        Log.d("SafeZone", "ACTION: bubble HIDDEN (outside zone)")
+                    val result = isInSafeZone(event, this)
+                    val hit = result.first
+                    Log.d("SafeZone", "ACTION: (%.4f,%.4f) %s zone".format(result.second, result.third, if (hit) "INSIDE" else "OUTSIDE"))
+                    if (!hit) {
                         hideBubble()
                     }
                     return true
@@ -647,7 +646,7 @@ class Service : AccessibilityService() {
         animation.start()
     }
 
-    private fun isInSafeZone(event: MotionEvent, view: View): Boolean {
+    private fun isInSafeZone(event: MotionEvent, view: View): Triple<Boolean, Float, Float> {
         val display = windowManager.defaultDisplay
         val realSize = android.graphics.Point()
         display.getRealSize(realSize)
@@ -659,7 +658,7 @@ class Service : AccessibilityService() {
             .format(realSize.x, realSize.y, display.rotation, isLandscape, zones.size))
         if (zones.isEmpty()) {
             Log.d("SafeZone", "no zones defined for this orientation")
-            return false
+            return Triple(false, 0f, 0f)
         }
 
         val rawX = event.rawX
@@ -687,11 +686,11 @@ class Service : AccessibilityService() {
                                 fxPct, fyPct, if (inside) "IN ZONE ✓" else "outside"))
                         inside
                     }
-                    Log.d("SafeZone", "getevent result: %s".format(if (hit) "IN ZONE (keep)" else "OUTSIDE (hide)"))
-                    return hit
+                    Log.d("SafeZone", "getevent result: (%.4f,%.4f) %s".format(fxPct, fyPct, if (hit) "IN ZONE" else "OUTSIDE"))
+                    return Triple(hit, fxPct, fyPct)
                 }
                 Log.d("SafeZone", "getevent: no touch data, assuming in zone")
-                return true
+                return Triple(true, -1f, -1f)
             }
             Log.d("SafeZone", "raw=(0,0) but event=(%.0f,%.0f) — using view location"
                 .format(event.x, event.y))
@@ -717,8 +716,8 @@ class Service : AccessibilityService() {
                     xPct, yPct, if (inside) "IN ZONE ✓" else "outside"))
             inside
         }
-        Log.d("SafeZone", "motionEvent result: %s".format(if (hit) "IN ZONE (keep)" else "OUTSIDE (hide)"))
-        return hit
+        Log.d("SafeZone", "motionEvent result: (%.4f,%.4f) %s".format(xPct, yPct, if (hit) "IN ZONE" else "OUTSIDE"))
+        return Triple(hit, xPct, yPct)
     }
 
     private fun shouldIgnoreForegroundTaskVolumeKeys(): Boolean {
