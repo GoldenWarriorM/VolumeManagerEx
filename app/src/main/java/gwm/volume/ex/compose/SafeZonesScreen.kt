@@ -206,8 +206,8 @@ fun SafeZonesScreen(
                         val yPct = if (currentIsLandscapeMode) 1f - cX else cY
                         val zn = currentZones
                         val handleThresholdPct = handleHitPx / minOf(cw, ch)
-                        val mnX = 20f / cw
-                        val mnY = 20f / ch
+                        val mnX = 0f
+                        val mnY = 0f
 
                         val hitHandle = findHandle(zn, selectedIndex, xPct, yPct, handleThresholdPct)
                         val hitSelected = hitHandle == null && selectedIndex in zn.indices &&
