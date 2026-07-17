@@ -235,7 +235,11 @@ class Service : AccessibilityService() {
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouchEvent(event: MotionEvent): Boolean {
                 if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                    if (!isInSafeZone(event, this)) {
+                    val inZone = isInSafeZone(event, this)
+                    if (inZone) {
+                        Log.d("SafeZone", "ACTION: bubble KEPT (in zone)")
+                    } else {
+                        Log.d("SafeZone", "ACTION: bubble HIDDEN (outside zone)")
                         hideBubble()
                     }
                     return true
@@ -580,6 +584,7 @@ class Service : AccessibilityService() {
         if (!bubbleVisible) {
             return
         }
+        Log.d("SafeZone", "hideBubble: executing")
 
         bubbleVisible = false
         mainHandler.removeCallbacks(hideBubbleRunnable)
