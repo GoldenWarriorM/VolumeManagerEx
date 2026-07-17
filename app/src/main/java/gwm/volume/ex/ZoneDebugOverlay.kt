@@ -74,8 +74,10 @@ class ZoneDebugOverlay(context: Context) : View(context) {
 
         if (w != zoneW || h != zoneH) {
             val displaySize = Point()
-            (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                .defaultDisplay.getRealSize(displaySize)
+            try {
+                (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+                    .defaultDisplay.getRealSize(displaySize)
+            } catch (_: Exception) {}
             Log.d("ZoneDebugOverlay", "view=%dx%d display=%dx%d zones=%d"
                 .format(width, height, displaySize.x, displaySize.y, zones.size))
             zoneW = w
@@ -87,15 +89,23 @@ class ZoneDebugOverlay(context: Context) : View(context) {
         canvas.drawLine(w / 2, h / 2 - 20, w / 2, h / 2 + 20, crossPaint)
         canvas.drawCircle(w / 2, h / 2, 5f, crossPaint)
 
+        val sb = StringBuilder()
         for ((index, zone) in zones.withIndex()) {
             val left = zone.leftPercent * w
             val top = zone.topPercent * h
             val right = zone.rightPercent * w
             val bottom = zone.bottomPercent * h
+            if (index > 0) sb.append(" | ")
+            sb.append("zone%d: pct=(%.3f-%.3f, %.3f-%.3f) px=(%.0f-%.0f, %.0f-%.0f)"
+                .format(index, zone.leftPercent, zone.rightPercent, zone.topPercent, zone.bottomPercent,
+                    left, right, top, bottom))
 
             fillPaint.color = fillColors[index % fillColors.size]
             canvas.drawRect(left, top, right, bottom, fillPaint)
             canvas.drawRect(left, top, right, bottom, borderPaint)
+        }
+        if (zones.isNotEmpty()) {
+            Log.d("ZoneDebugOverlay", sb.toString())
         }
     }
 }
