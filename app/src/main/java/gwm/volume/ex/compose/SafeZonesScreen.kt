@@ -51,6 +51,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import android.graphics.BitmapFactory
@@ -66,6 +67,7 @@ import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Composable
 fun SafeZonesScreen(
@@ -308,7 +310,14 @@ fun SafeZonesScreen(
 
             drawRoundRect(color = bgColor, cornerRadius = CornerRadius(16f), size = size)
             screenshotBitmap?.let { img ->
-                drawImage(image = img, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
+                val imgW = img.width.toFloat()
+                val imgH = img.height.toFloat()
+                val scale = minOf(w / imgW, h / imgH)
+                val drawW = imgW * scale
+                val drawH = imgH * scale
+                val offX = (w - drawW) / 2f
+                val offY = (h - drawH) / 2f
+                drawImage(image = img, dstOffset = IntOffset(offX.roundToInt(), offY.roundToInt()), dstSize = IntSize(drawW.roundToInt(), drawH.roundToInt()))
             }
 
             for ((index, zone) in activeZones.withIndex()) {
