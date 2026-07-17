@@ -650,8 +650,10 @@ class Service : AccessibilityService() {
         val height = realSize.y.toFloat()
         val isLandscape = width > height
         val zones = if (isLandscape) manager.bubblePreferences.safeZonesLandscape else manager.bubblePreferences.safeZones
+        Log.d("SafeZone", "display: %dx%d rot=%d isLandscape=%s zoneCount=%d"
+            .format(realSize.x, realSize.y, display.rotation, isLandscape, zones.size))
         if (zones.isEmpty()) {
-            Log.d("SafeZone", "no zones defined")
+            Log.d("SafeZone", "no zones defined for this orientation")
             return false
         }
 
@@ -670,18 +672,24 @@ class Service : AccessibilityService() {
                         3 -> Pair(eyPct, 1f - exPct)      // ROTATION_270
                         else -> Pair(exPct, eyPct)        // ROTATION_0
                     }
-                    Log.d("SafeZone", "getevent: raw=(%.4f,%.4f) rot%d -> fixed=(%.4f,%.4f)"
+                    Log.d("SafeZone", "getevent: eventRaw=(%.4f,%.4f) rot%d -> display=(%.4f,%.4f)"
                         .format(exPct, eyPct, display.rotation, fxPct, fyPct))
                     val hit = zones.any { zone ->
-                        fxPct >= zone.leftPercent && fxPct <= zone.rightPercent &&
+                        val inside = fxPct >= zone.leftPercent && fxPct <= zone.rightPercent &&
                                 fyPct >= zone.topPercent && fyPct <= zone.bottomPercent
+                        Log.d("SafeZone", "  zone(%.3f-%.3f, %.3f-%.3f): (%.4f,%.4f) %s"
+                            .format(zone.leftPercent, zone.rightPercent, zone.topPercent, zone.bottomPercent,
+                                fxPct, fyPct, if (inside) "IN ZONE ✓" else "outside"))
+                        inside
                     }
-                    Log.d("SafeZone", "getevent: result: %s".format(if (hit) "IN ZONE" else "OUTSIDE"))
+                    Log.d("SafeZone", "getevent result: %s".format(if (hit) "IN ZONE (keep)" else "OUTSIDE (hide)"))
                     return hit
                 }
-                Log.d("SafeZone", "unreliable coordinates, assuming in zone")
+                Log.d("SafeZone", "getevent: no touch data, assuming in zone")
                 return true
             }
+            Log.d("SafeZone", "raw=(0,0) but event=(%.0f,%.0f) — using view location"
+                .format(event.x, event.y))
             val location = IntArray(2)
             view.getLocationOnScreen(location)
             screenX = event.x + location[0]
@@ -693,18 +701,18 @@ class Service : AccessibilityService() {
 
         val xPct = screenX / width
         val yPct = screenY / height
-        Log.d("SafeZone", "tap: raw=(%.0f,%.0f) screen=(%.0f,%.0f) pct=(%.4f,%.4f) win=(%dx%d)"
+        Log.d("SafeZone", "motionEvent: raw=(%.0f,%.0f) screen=(%.0f,%.0f) pct=(%.4f,%.4f) win=(%dx%d)"
             .format(rawX, rawY, screenX, screenY, xPct, yPct, realSize.x, realSize.y))
 
         val hit = zones.any { zone ->
             val inside = xPct >= zone.leftPercent && xPct <= zone.rightPercent &&
                     yPct >= zone.topPercent && yPct <= zone.bottomPercent
-            Log.d("SafeZone", "  zone (%.3f,%.3f,%.3f,%.3f): %s"
-                .format(zone.leftPercent, zone.topPercent, zone.rightPercent, zone.bottomPercent,
-                    if (inside) "INSIDE ✓" else "outside"))
+            Log.d("SafeZone", "  zone(%.3f-%.3f, %.3f-%.3f): (%.4f,%.4f) %s"
+                .format(zone.leftPercent, zone.rightPercent, zone.topPercent, zone.bottomPercent,
+                    xPct, yPct, if (inside) "IN ZONE ✓" else "outside"))
             inside
         }
-        Log.d("SafeZone", "result: %s".format(if (hit) "IN ZONE (keep bubble)" else "OUTSIDE (hide)"))
+        Log.d("SafeZone", "motionEvent result: %s".format(if (hit) "IN ZONE (keep)" else "OUTSIDE (hide)"))
         return hit
     }
 
