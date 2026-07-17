@@ -499,14 +499,17 @@ private fun findHandle(
 ): Int? {
     if (selectedIndex !in zones.indices) return null
     val zone = zones[selectedIndex]
+    val tap = Offset(xPct, yPct)
     val corners = listOf(
         Offset(zone.leftPercent, zone.topPercent),
         Offset(zone.rightPercent, zone.topPercent),
         Offset(zone.leftPercent, zone.bottomPercent),
         Offset(zone.rightPercent, zone.bottomPercent)
     )
-    val idx = corners.indexOfFirst { (it - Offset(xPct, yPct)).getDistance() < thresholdPct }
-    return if (idx >= 0) idx else null
+    val best = corners.withIndex()
+        .filter { (it.value - tap).getDistance() < thresholdPct }
+        .minByOrNull { (it.value - tap).getDistance() }
+    return best?.index
 }
 
 private fun isInside(zone: SafeZone, xPct: Float, yPct: Float): Boolean {
