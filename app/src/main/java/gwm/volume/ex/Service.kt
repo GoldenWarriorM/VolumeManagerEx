@@ -662,12 +662,19 @@ class Service : AccessibilityService() {
                 val tapPct = manager.getEventReader.getTouchPct()
                 if (tapPct != null) {
                     val (exPct, eyPct) = tapPct
-                    val hit = zones.any { zone ->
-                        exPct >= zone.leftPercent && exPct <= zone.rightPercent &&
-                                eyPct >= zone.topPercent && eyPct <= zone.bottomPercent
+                    val (fxPct, fyPct) = when (display.rotation) {
+                        1 -> Pair(1f - eyPct, exPct)      // ROTATION_90
+                        2 -> Pair(1f - exPct, 1f - eyPct) // ROTATION_180
+                        3 -> Pair(eyPct, 1f - exPct)      // ROTATION_270
+                        else -> Pair(exPct, eyPct)        // ROTATION_0
                     }
-                    Log.d("SafeZone", "getevent: pct=(%.4f,%.4f) result: %s"
-                        .format(exPct, eyPct, if (hit) "IN ZONE" else "OUTSIDE"))
+                    Log.d("SafeZone", "getevent: raw=(%.4f,%.4f) rot%d -> fixed=(%.4f,%.4f)"
+                        .format(exPct, eyPct, display.rotation, fxPct, fyPct))
+                    val hit = zones.any { zone ->
+                        fxPct >= zone.leftPercent && fxPct <= zone.rightPercent &&
+                                fyPct >= zone.topPercent && fyPct <= zone.bottomPercent
+                    }
+                    Log.d("SafeZone", "getevent: result: %s".format(if (hit) "IN ZONE" else "OUTSIDE"))
                     return hit
                 }
                 Log.d("SafeZone", "unreliable coordinates, assuming in zone")
