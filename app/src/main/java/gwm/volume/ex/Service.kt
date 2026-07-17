@@ -671,9 +671,9 @@ class Service : AccessibilityService() {
                 if (tapPct != null) {
                     val (exPct, eyPct) = tapPct
                     val (fxPct, fyPct) = when (display.rotation) {
-                        1 -> Pair(1f - eyPct, exPct)      // ROTATION_90
+                        1 -> Pair(eyPct, 1f - exPct)      // ROTATION_90
                         2 -> Pair(1f - exPct, 1f - eyPct) // ROTATION_180
-                        3 -> Pair(eyPct, 1f - exPct)      // ROTATION_270
+                        3 -> Pair(1f - eyPct, exPct)      // ROTATION_270
                         else -> Pair(exPct, eyPct)        // ROTATION_0
                     }
                     Log.d("SafeZone", "getevent: eventRaw=(%.4f,%.4f) rot%d -> display=(%.4f,%.4f)"
